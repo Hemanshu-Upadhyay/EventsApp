@@ -9,22 +9,24 @@ import {
   AppState,
 } from 'react-native';
 import PushNotificationIOS from '@react-native-community/push-notification-ios';
-import PushNotification from 'react-native-push-notification';
 
 interface TaskDataArguments {
   delay: number;
 }
 
 const sleep = (time: number) =>
-  new Promise(resolve => setTimeout(() => resolve(), time));
+  new Promise<void>(resolve => setTimeout(() => resolve(), time));
 
-const veryIntensiveTask = async (taskDataArguments: TaskDataArguments) => {
-  const {delay} = taskDataArguments;
-  await new Promise(async resolve => {
+const veryIntensiveTask = async (taskData?: {delay: number}): Promise<void> => {
+  const taskDataArguments: TaskDataArguments = {
+    delay: taskData?.delay || 1000,
+  };
+
+  await new Promise<void>(async resolve => {
     for (let i = 0; BackgroundService.isRunning(); i++) {
       console.log(i);
       showNotification(i);
-      await sleep(delay);
+      await sleep(taskDataArguments.delay);
     }
   });
 };

@@ -17,7 +17,7 @@ interface TaskDataArguments {
 }
 
 const sleep = (time: number) =>
-  new Promise(resolve => setTimeout(() => resolve(), time));
+  new Promise<void>(resolve => setTimeout(() => resolve(), time));
 
 const veryIntensiveTask = async (taskDataArguments: TaskDataArguments) => {
   const {delay} = taskDataArguments;

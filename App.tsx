@@ -10,6 +10,7 @@ import type {PropsWithChildren} from 'react';
 import {SafeAreaView, Text, View} from 'react-native';
 import BackgroundLocationService from './Services/LocationBackgroundService';
 import BackgroundTask from './Services/BackgroundService';
+import Homescreen from './src/screens/Homescreen';
 
 type Props = PropsWithChildren<{}>;
 
@@ -17,8 +18,7 @@ const App = (props: Props) => {
   return (
     <SafeAreaView>
       <View>
-        <Text>App View</Text>
-        <BackgroundLocationService />
+        <Homescreen />
         <BackgroundTask />
       </View>
     </SafeAreaView>
