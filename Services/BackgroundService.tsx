@@ -1,13 +1,8 @@
 import BackgroundService from 'react-native-background-actions';
+import createEvent from '../src/events/eventCreator';
+import Geolocation from '@react-native-community/geolocation';
 import React, {useState} from 'react';
-import {
-  View,
-  Button,
-  Platform,
-  ToastAndroid,
-  Alert,
-  AppState,
-} from 'react-native';
+import {View, Button, Platform, ToastAndroid} from 'react-native';
 import PushNotificationIOS from '@react-native-community/push-notification-ios';
 
 interface TaskDataArguments {
@@ -19,13 +14,27 @@ const sleep = (time: number) =>
 
 const veryIntensiveTask = async (taskData?: {delay: number}): Promise<void> => {
   const taskDataArguments: TaskDataArguments = {
-    delay: taskData?.delay || 1000,
+    delay: taskData?.delay || 10000,
   };
 
-  await new Promise<void>(async resolve => {
+  await new Promise<void>(async () => {
     for (let i = 0; BackgroundService.isRunning(); i++) {
       console.log(i);
       showNotification(i);
+      Geolocation.getCurrentPosition(
+        position => {
+          console.log(position);
+          createEvent('931 Twin Willow Lane');
+        },
+        error => {
+          console.log(error);
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 1000 * 60,
+        },
+      );
       await sleep(taskDataArguments.delay);
     }
   });
