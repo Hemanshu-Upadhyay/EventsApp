@@ -76,9 +76,6 @@ const createEvent = async coords => {
         JSON.stringify(startTimeStamp),
       );
     }
-
-    // const {latitude, longitude} = coords;
-    console.log('oldAddress !== currentAddress===', oldAddress, currentAddress);
   };
 
   checkAddressAndRetrieveImages();
