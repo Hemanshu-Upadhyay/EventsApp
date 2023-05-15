@@ -17,17 +17,21 @@ interface TaskDataArguments {
 const sleep = (time: number) =>
   new Promise<void>(resolve => setTimeout(() => resolve(), time));
 
+let count = 0;
+
 const veryIntensiveTask = async (taskData?: {delay: number}): Promise<void> => {
   const taskDataArguments: TaskDataArguments = {
     delay: taskData?.delay || 1000,
   };
 
   await new Promise<void>(async resolve => {
-    for (let i = 0; BackgroundService.isRunning(); i++) {
-      console.log(i);
-      showNotification(i);
+    while (BackgroundService.isRunning()) {
+      count++;
+      console.log(count);
+      showNotification(count);
       await sleep(taskDataArguments.delay);
     }
+    resolve();
   });
 };
 

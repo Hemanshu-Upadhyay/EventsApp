@@ -8,6 +8,7 @@ import {
   Alert,
   AppState,
   PermissionsAndroid,
+  HeadlessJsTaskSupport,
 } from 'react-native';
 import PushNotificationIOS from '@react-native-community/push-notification-ios';
 import Geolocation from '@react-native-community/geolocation';
@@ -21,25 +22,23 @@ const sleep = (time: number) =>
 
 const veryIntensiveTask = async (taskDataArguments: TaskDataArguments) => {
   const {delay} = taskDataArguments;
-  await new Promise(async resolve => {
-    for (let i = 0; BackgroundService.isRunning(); i++) {
-      Geolocation.getCurrentPosition(
-        position => {
-          console.log(position);
-          showNotification(position.coords);
-        },
-        error => {
-          console.log(error);
-        },
-        {
-          enableHighAccuracy: true,
-          timeout: 20000,
-          maximumAge: 1000 * 60,
-        },
-      );
-      await sleep(delay);
-    }
-  });
+  for (let i = 0; true; i++) {
+    Geolocation.getCurrentPosition(
+      position => {
+        console.log(position);
+        showNotification(position.coords);
+      },
+      error => {
+        console.log(error);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 20000,
+        maximumAge: 1000 * 60,
+      },
+    );
+    await sleep(delay);
+  }
 };
 
 const options = {
@@ -53,8 +52,9 @@ const options = {
   color: '#ff00ff',
   linkingURI: 'yourSchemeHere://chat/jane',
   parameters: {
-    delay: 6000,
+    delay: 3000,
   },
+  allowExecutionInForeground: true,
 };
 
 const showNotification = (coords: GeolocationCoordinates) => {
@@ -70,6 +70,14 @@ const showNotification = (coords: GeolocationCoordinates) => {
       applicationIconBadgeNumber: 1,
     });
   }
+};
+
+const registerHeadlessTask = () => {
+  HeadlessJsTaskSupport.addEvent(
+    'LocationTracking',
+    () => veryIntensiveTask(options.parameters),
+    options,
+  );
 };
 
 const BackgroundLocationService = () => {
@@ -91,6 +99,7 @@ const BackgroundLocationService = () => {
       if (granted === PermissionsAndroid.RESULTS.GRANTED) {
         await BackgroundService.start(veryIntensiveTask, options);
         setIsRunning(true);
+        registerHeadlessTask();
       } else {
         Alert.alert('Location permission denied');
       }
@@ -113,7 +122,7 @@ const BackgroundLocationService = () => {
   return (
     <View>
       <Button title="Start Tracking" disabled={isRunning} onPress={startTask} />
-      <Button title="Stop Tracking" disabled={!isRunning} onPress={stopTask} />
+      <Button title="Stop Tracking" disabled={isRunning} onPress={stopTask} />
     </View>
   );
 };
