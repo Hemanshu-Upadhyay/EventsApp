@@ -17,26 +17,13 @@ const veryIntensiveTask = async (taskData?: {delay: number}): Promise<void> => {
     delay: taskData?.delay || 10000,
   };
 
-  await new Promise<void>(async () => {
+  await new Promise<void>(async resolve => {
     for (let i = 0; BackgroundService.isRunning(); i++) {
       console.log(i);
       showNotification(i);
-      Geolocation.getCurrentPosition(
-        position => {
-          console.log(position);
-          createEvent('931 Twin Willow Lane');
-        },
-        error => {
-          console.log(error);
-        },
-        {
-          enableHighAccuracy: true,
-          timeout: 10000,
-          maximumAge: 1000 * 60,
-        },
-      );
       await sleep(taskDataArguments.delay);
     }
+    resolve();
   });
 };
 
