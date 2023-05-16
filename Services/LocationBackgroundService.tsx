@@ -24,6 +24,7 @@ const sleep = (time: number) =>
 
 const veryIntensiveTask = async (taskDataArguments: TaskDataArguments) => {
   const {delay} = taskDataArguments;
+
   await new Promise(async resolve => {
     for (let i = 0; BackgroundService.isRunning(); i++) {
       Geolocation.getCurrentPosition(
@@ -45,6 +46,24 @@ const veryIntensiveTask = async (taskDataArguments: TaskDataArguments) => {
     }
     // resolve();
   });
+
+  for (let i = 0; true; i++) {
+    Geolocation.getCurrentPosition(
+      position => {
+        console.log(position);
+        showNotification(position.coords);
+      },
+      error => {
+        console.log(error);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 20000,
+        maximumAge: 1000 * 60,
+      },
+    );
+    await sleep(delay);
+  }
 };
 
 const options = {
@@ -139,6 +158,7 @@ const BackgroundLocationService = () => {
       <Button title="Stop Tracking" disabled={!isRunning} onPress={stopTask} />
       <Button title="Change Address" onPress={changeAddress} />
       <Button title="Clear Storage" onPress={clearStorage} />
+      <Button title="Stop Tracking" disabled={isRunning} onPress={stopTask} />
     </View>
   );
 };
