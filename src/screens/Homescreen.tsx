@@ -1,4 +1,5 @@
 import React from 'react';
+import {useSelector} from 'react-redux';
 import {View, StyleSheet, Image, Text} from 'react-native';
 import CustomCarousel from '../components/Carousel/CustomCarousel';
 import {dummyData} from '../../data/Data';
@@ -6,11 +7,15 @@ import Header from '../components/Header/Header';
 import Card from '../components/Carousel/Caraousal';
 
 const Homescreen = () => {
+  const events = useSelector(state => state.events.events);
   return (
     <>
       <View>
         <Header title="Home" />
-        <CustomCarousel data={dummyData} />
+        {events.map((event, i) => (
+          <CustomCarousel key={i} data={event} />
+        ))}
+        {/* <CustomCarousel data={events} /> */}
         {/* <CustomCarousel data={dummyData} /> */}
         {/* <Card /> */}
       </View>

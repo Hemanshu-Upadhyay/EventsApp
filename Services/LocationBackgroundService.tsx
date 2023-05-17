@@ -1,4 +1,5 @@
 import BackgroundService from 'react-native-background-actions';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, {useState, useEffect} from 'react';
 import {
   View,
@@ -12,6 +13,7 @@ import {
 } from 'react-native';
 import PushNotificationIOS from '@react-native-community/push-notification-ios';
 import Geolocation from '@react-native-community/geolocation';
+import createEvent from '../src/events/eventCreator';
 
 interface TaskDataArguments {
   delay: number;
@@ -22,6 +24,29 @@ const sleep = (time: number) =>
 
 const veryIntensiveTask = async (taskDataArguments: TaskDataArguments) => {
   const {delay} = taskDataArguments;
+
+  await new Promise(async resolve => {
+    for (let i = 0; BackgroundService.isRunning(); i++) {
+      Geolocation.getCurrentPosition(
+        position => {
+          console.log(position);
+          showNotification(position.coords);
+          createEvent('931 Twin Willow Lane');
+        },
+        error => {
+          console.log(error);
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 1000 * 60,
+        },
+      );
+      await sleep(delay);
+    }
+    // resolve();
+  });
+
   for (let i = 0; true; i++) {
     Geolocation.getCurrentPosition(
       position => {
@@ -119,9 +144,20 @@ const BackgroundLocationService = () => {
     };
   }, []);
 
+  const clearStorage = () => {
+    AsyncStorage.clear();
+  };
+
+  const changeAddress = async () => {
+    await AsyncStorage.setItem('currentAddress', '96 Spring Street 2');
+  };
+
   return (
     <View>
       <Button title="Start Tracking" disabled={isRunning} onPress={startTask} />
+      <Button title="Stop Tracking" disabled={!isRunning} onPress={stopTask} />
+      <Button title="Change Address" onPress={changeAddress} />
+      <Button title="Clear Storage" onPress={clearStorage} />
       <Button title="Stop Tracking" disabled={isRunning} onPress={stopTask} />
     </View>
   );
