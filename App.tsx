@@ -17,7 +17,6 @@ const App = (props: Props) => {
           <View>
             <Homescreen />
             <BackgroundLocationService />
-            <BackgroundTask />
           </View>
         </ScrollView>
       </SafeAreaView>
