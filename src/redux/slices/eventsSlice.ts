@@ -13,6 +13,8 @@ const initialState = {
   events: [],
   loading: false,
   error: false,
+  uploading: false,
+  uploadError: false,
 };
 
 export const getEvents = createAsyncThunk('events/getEvents', async () => {
@@ -95,11 +97,13 @@ export const uploadEventPhotos = createAsyncThunk(
       parsedEvents = JSON.parse(eventsForSync);
 
       const keys = Object.keys(parsedEvents);
+
       const requests = keys.map(async key => {
+        console.log('uploding for event ====== ', key);
         const formData = new FormData();
 
-        parsedEvents[key].forEach(image => {
-          formData.append('upload', {
+        parsedEvents[key].forEach((image, index) => {
+          formData.append(`upload[${index}]`, {
             uri: image.uri,
             type: 'image/jpeg',
             name: image.filename,
@@ -116,14 +120,11 @@ export const uploadEventPhotos = createAsyncThunk(
           },
         );
 
-        return response.status;
+        if (response.status === 200) {
+          return {id: key, status: response.status};
+        }
       });
-      await AsyncStorage.removeItem('eventsForSync');
-
       const response = await Promise.all(requests);
-      // const response = await makeRequest(uploadEventPhotosUrl(id), 'PUT', body);
-      // const response = {};
-      // return {};
       if (response.length) {
         await AsyncStorage.removeItem('eventsForSync');
         dispatch(getEvents());
@@ -169,6 +170,18 @@ const toastSlice = createSlice({
     builder.addCase(createEvent.rejected, state => {
       state.loading = false;
       state.error = true;
+    });
+
+    builder.addCase(uploadEventPhotos.pending, state => {
+      state.uploading = true;
+    });
+    builder.addCase(uploadEventPhotos.fulfilled, state => {
+      state.uploading = false;
+      state.uploadError = false;
+    });
+    builder.addCase(uploadEventPhotos.rejected, state => {
+      state.uploading = false;
+      state.uploadError = true;
     });
   },
 });

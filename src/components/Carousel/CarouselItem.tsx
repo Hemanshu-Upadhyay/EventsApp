@@ -1,13 +1,24 @@
 import React from 'react';
-import {View, StyleSheet, Text, Image, Dimensions} from 'react-native';
+import {
+  View,
+  StyleSheet,
+  Text,
+  Image,
+  Dimensions,
+  ActivityIndicator,
+} from 'react-native';
 
 const {width, height} = Dimensions.get('window');
 
-const CarouselItem = ({item, data}) => {
+const CarouselItem = ({item, data, uploading = false}) => {
   const hardcodedDescription = `This pic is clicked at ${data?.title}`;
   return (
     <View style={styles.cardView}>
-      <Image style={styles.image} source={{uri: item.url}} />
+      {uploading ? (
+        <ActivityIndicator style={styles.loader} size="large" color="#777777" />
+      ) : (
+        <Image style={styles.image} source={{uri: item.url}} />
+      )}
       <View style={styles.cardContent}>
         <Text numberOfLines={1} ellipsizeMode="tail" style={styles.itemTitle}>
           {data?.title}
@@ -52,6 +63,10 @@ const styles = StyleSheet.create({
   },
   itemDescription: {
     fontSize: 12,
+  },
+  loader: {
+    height: '70%',
+    backgroundColor: '#dddddd',
   },
 });
 

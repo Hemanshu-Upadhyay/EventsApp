@@ -53,7 +53,7 @@ const eventCreator = async (coords: string, latitude, longitude) => {
       }
 
       CameraRoll.getPhotos({
-        first: 100,
+        first: 50,
         assetType: 'Photos',
         fromTime: Number(oldTime),
         toTime: startTimeStamp,
