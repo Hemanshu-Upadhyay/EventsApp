@@ -1,5 +1,6 @@
 import BackgroundService from 'react-native-background-actions';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Geocoder from 'react-native-geocoding';
 import React, {useState, useEffect} from 'react';
 import {
   View,
@@ -14,7 +15,10 @@ import {
 import PushNotificationIOS from '@react-native-community/push-notification-ios';
 import Geolocation from '@react-native-community/geolocation';
 import createEvent from '../src/events/eventCreator';
+import {useDispatch} from 'react-redux';
+import {getEvents, uploadEventPhotos} from '../src/redux/slices/eventsSlice';
 
+Geocoder.init('AIzaSyB8iCzJlmSC8Ku6pStVH1l-qVjZi65H96k');
 interface TaskDataArguments {
   delay: number;
 }
@@ -31,14 +35,22 @@ const veryIntensiveTask = async (taskDataArguments: TaskDataArguments) => {
         position => {
           console.log(position);
           showNotification(position.coords);
-          createEvent('931 Twin Willow Lane');
+          const {latitude, longitude} = position.coords;
+          Geocoder.from(latitude, longitude)
+            .then(response => {
+              const address = response.results[0].formatted_address;
+              createEvent(address, latitude, longitude);
+            })
+            .catch(error => {
+              console.warn('Geocoding error:', error);
+            });
         },
         error => {
           console.log(error);
         },
         {
           enableHighAccuracy: true,
-          timeout: 10000,
+          timeout: 15000,
           maximumAge: 1000 * 60,
         },
       );
@@ -46,24 +58,6 @@ const veryIntensiveTask = async (taskDataArguments: TaskDataArguments) => {
     }
     // resolve();
   });
-
-  for (let i = 0; true; i++) {
-    Geolocation.getCurrentPosition(
-      position => {
-        console.log(position);
-        showNotification(position.coords);
-      },
-      error => {
-        console.log(error);
-      },
-      {
-        enableHighAccuracy: true,
-        timeout: 20000,
-        maximumAge: 1000 * 60,
-      },
-    );
-    await sleep(delay);
-  }
 };
 
 const options = {
@@ -77,7 +71,7 @@ const options = {
   color: '#ff00ff',
   linkingURI: 'yourSchemeHere://chat/jane',
   parameters: {
-    delay: 3000,
+    delay: 10000,
   },
   allowExecutionInForeground: true,
 };
@@ -106,7 +100,31 @@ const registerHeadlessTask = () => {
 };
 
 const BackgroundLocationService = () => {
+  const dispatch = useDispatch();
   const [isRunning, setIsRunning] = useState(false);
+  const [appState, setAppState] = useState(AppState.currentState);
+
+  useEffect(() => {
+    dispatch(getEvents());
+  }, [dispatch]);
+
+  useEffect(() => {
+    const handleAppStateChange = nextAppState => {
+      setAppState(nextAppState);
+    };
+
+    // Subscribe to app state changes
+    AppState.addEventListener('change', handleAppStateChange);
+
+    // Clean up event listener on unmount
+    return () => {
+      AppState.removeEventListener('change', handleAppStateChange);
+    };
+  }, []);
+  console.log('APPstate==========', appState);
+  if (appState === 'active') {
+    dispatch(uploadEventPhotos());
+  }
 
   const startTask = async () => {
     try {
@@ -139,6 +157,9 @@ const BackgroundLocationService = () => {
   };
 
   useEffect(() => {
+    if (!isRunning) {
+      startTask();
+    }
     return () => {
       BackgroundService.stop();
     };
@@ -148,17 +169,11 @@ const BackgroundLocationService = () => {
     AsyncStorage.clear();
   };
 
-  const changeAddress = async () => {
-    await AsyncStorage.setItem('currentAddress', '96 Spring Street 2');
-  };
-
   return (
     <View>
-      <Button title="Start Tracking" disabled={isRunning} onPress={startTask} />
+      {/* <Button title="Start Tracking" disabled={isRunning} onPress={startTask} /> */}
       <Button title="Stop Tracking" disabled={!isRunning} onPress={stopTask} />
-      <Button title="Change Address" onPress={changeAddress} />
-      <Button title="Clear Storage" onPress={clearStorage} />
-      <Button title="Stop Tracking" disabled={isRunning} onPress={stopTask} />
+      {/* <Button title="Clear Storage" onPress={clearStorage} /> */}
     </View>
   );
 };

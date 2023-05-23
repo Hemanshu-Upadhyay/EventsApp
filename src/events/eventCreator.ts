@@ -1,23 +1,29 @@
 import {PermissionsAndroid, Platform} from 'react-native';
-import Geolocation from '@react-native-community/geolocation';
 // import Geocoder from 'react-native-geocoding';
 import {CameraRoll} from '@react-native-camera-roll/camera-roll';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import store from '../../src/redux/store';
-import {updateEvents} from '../redux/slices/eventsSlice';
+import {createEvent, updateEvents} from '../redux/slices/eventsSlice';
+import {formatTime} from '../utils/helpers';
 
-const createEvent = async coords => {
+const eventCreator = async (coords: string, latitude, longitude) => {
   const startTimeStamp = new Date().getTime();
+
+  let events = await AsyncStorage.getItem('eventsForSync');
+  console.log('events-----', events);
   let oldTime = await AsyncStorage.getItem('eventStartTime');
   let oldAddress = await AsyncStorage.getItem('currentAddress');
 
   // Storing the start time and address when app runs first time
   if (!oldTime) {
-    AsyncStorage.setItem('eventStartTime', JSON.stringify(startTimeStamp));
+    await AsyncStorage.setItem(
+      'eventStartTime',
+      JSON.stringify(startTimeStamp),
+    );
   }
 
   if (!oldAddress) {
-    AsyncStorage.setItem('currentAddress', JSON.stringify(coords));
+    await AsyncStorage.setItem('currentAddress', JSON.stringify(coords));
   }
 
   const checkAddressAndRetrieveImages = async () => {
@@ -35,12 +41,11 @@ const createEvent = async coords => {
       return status === 'granted';
     }
 
-    let currentAddress = JSON.stringify(coords);
-    oldAddress = await AsyncStorage.getItem('currentAddress');
+    let currentAddress = coords;
     oldTime = await AsyncStorage.getItem('eventStartTime');
-
+    oldAddress = await AsyncStorage.getItem('currentAddress');
     if (
-      oldAddress !== currentAddress &&
+      JSON.parse(oldAddress) !== currentAddress &&
       startTimeStamp - Number(oldTime) > 10000
     ) {
       if (Platform.OS === 'android' && !(await hasAndroidPermission())) {
@@ -48,33 +53,47 @@ const createEvent = async coords => {
       }
 
       CameraRoll.getPhotos({
-        first: 500,
+        first: 100,
         assetType: 'Photos',
         fromTime: Number(oldTime),
         toTime: startTimeStamp,
+        include: ['filename'],
       })
-        .then(r => {
-          const images = r.edges.map((item, i) => {
+        .then(async r => {
+          console.log({photos: r?.edges[0]?.node});
+          const images = r.edges.map(item => {
             return {
-              id: i + 1,
-              title: 'Anise Aroma Art Bazar',
-              url: item?.node?.image?.uri,
-              description:
-                'Lorem Ipsum is simply dummy text of the printing and typesetting industry.',
+              uri: item?.node?.image?.uri,
+              filename: item?.node?.image?.filename,
             };
           });
-          store.dispatch(updateEvents(images));
-          console.log({photos: r.edges[0].node});
+          console.log('creating new event 000000000000000000000000000000');
+          const body = {
+            latitude,
+            longitude,
+            google_lookup: JSON.parse(oldAddress),
+            begin_timestamp: formatTime(Number(oldTime)),
+            end_timestamp: formatTime(startTimeStamp),
+            title: JSON.parse(oldAddress),
+            category: 'Events pics',
+          };
+          store.dispatch(
+            createEvent({
+              body,
+              images: images,
+              coords: JSON.parse(oldAddress),
+              startTimeStamp,
+            }),
+          );
+          await AsyncStorage.setItem('currentAddress', JSON.stringify(coords));
+          await AsyncStorage.setItem(
+            'eventStartTime',
+            JSON.stringify(startTimeStamp),
+          );
         })
         .catch(err => {
           console.log(err);
-          //Error Loading Images
         });
-      await AsyncStorage.setItem('currentAddress', JSON.stringify(coords));
-      await AsyncStorage.setItem(
-        'eventStartTime',
-        JSON.stringify(startTimeStamp),
-      );
     }
   };
 
@@ -83,4 +102,4 @@ const createEvent = async coords => {
   return null;
 };
 
-export default createEvent;
+export default eventCreator;

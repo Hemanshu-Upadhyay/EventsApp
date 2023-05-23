@@ -18,7 +18,15 @@ const CustomCarousel = ({data}) => {
   let position = Animated.divide(scrollX, width);
   const [dataList, setDataList] = useState(data);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const defaultImage = {
+    // url: require('../../../assets/images/defaultEvent.png'),
+    url: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSPfoZjo2BFClW-L-P-jWaz699pTgyNV-H1ig&usqp=CAU',
+  };
 
+  const defaultData = {
+    title: 'Available Soon',
+    description: 'Event Images available soon',
+  };
   useEffect(() => {
     setDataList(data);
   }, [data]);
@@ -34,21 +42,21 @@ const CustomCarousel = ({data}) => {
     flatList.scrollToIndex({animated: true, index});
   };
 
-  if (data && data.length) {
+  if (data.photos && data.photos.length) {
     return (
       <View>
         <FlatList
-          data={data}
+          data={data?.photos}
           ref={ref => {
             flatList = ref;
           }}
-          keyExtractor={(item, index) => 'key' + index}
+          keyExtractor={item => item.id}
           horizontal
           pagingEnabled
           scrollEnabled
           showsHorizontalScrollIndicator={false}
           renderItem={({item}) => {
-            return <CarouselItem item={item} />;
+            return <CarouselItem item={item} data={data} />;
           }}
           onScroll={handleScroll}
           onMomentumScrollEnd={handleScroll}
@@ -56,15 +64,14 @@ const CustomCarousel = ({data}) => {
 
         <View style={styles.countContainer}>
           <Text style={styles.countText}>
-            {currentImageIndex + 1}/{data.length}
+            {currentImageIndex + 1}/{data.photos.length}
           </Text>
         </View>
       </View>
     );
   }
 
-  console.log('Please provide Images');
-  return null;
+  return <CarouselItem item={defaultImage} data={defaultData} />;
 };
 
 const styles = StyleSheet.create({

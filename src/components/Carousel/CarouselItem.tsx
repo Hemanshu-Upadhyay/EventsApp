@@ -3,13 +3,21 @@ import {View, StyleSheet, Text, Image, Dimensions} from 'react-native';
 
 const {width, height} = Dimensions.get('window');
 
-const CarouselItem = ({item}) => {
+const CarouselItem = ({item, data}) => {
+  const hardcodedDescription = `This pic is clicked at ${data?.title}`;
   return (
     <View style={styles.cardView}>
       <Image style={styles.image} source={{uri: item.url}} />
       <View style={styles.cardContent}>
-        <Text style={styles.itemTitle}>{item.title}</Text>
-        <Text style={styles.itemDescription}>{item.description}</Text>
+        <Text numberOfLines={1} ellipsizeMode="tail" style={styles.itemTitle}>
+          {data?.title}
+        </Text>
+        <Text
+          numberOfLines={1}
+          ellipsizeMode="tail"
+          style={styles.itemDescription}>
+          {hardcodedDescription}
+        </Text>
       </View>
     </View>
   );
