@@ -17,6 +17,7 @@ import Geolocation from '@react-native-community/geolocation';
 import createEvent from '../src/events/eventCreator';
 import {useDispatch} from 'react-redux';
 import {getEvents, uploadEventPhotos} from '../src/redux/slices/eventsSlice';
+import {request, PERMISSIONS} from 'react-native-permissions';
 
 Geocoder.init('AIzaSyB8iCzJlmSC8Ku6pStVH1l-qVjZi65H96k');
 interface TaskDataArguments {
@@ -126,20 +127,35 @@ const BackgroundLocationService = () => {
     dispatch(uploadEventPhotos());
   }
 
+  // ...
+
   const startTask = async () => {
     try {
-      const granted = await PermissionsAndroid.request(
-        PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
-        {
-          title: 'Location Permission',
-          message:
-            'This app needs access to your location to track it in the background.',
-          buttonNeutral: 'Ask Me Later',
-          buttonNegative: 'Cancel',
-          buttonPositive: 'OK',
-        },
-      );
-      if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+      let granted = null;
+      if (Platform.OS === 'android') {
+        granted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+          {
+            title: 'Location Permission',
+            message:
+              'This app needs access to your location to track it in the background.',
+            buttonNeutral: 'Ask Me Later',
+            buttonNegative: 'Cancel',
+            buttonPositive: 'OK',
+          },
+        );
+      } else if (Platform.OS === 'ios') {
+        granted = await request(
+          parseInt(Platform.Version, 10) < 13
+            ? PERMISSIONS.IOS.LOCATION_ALWAYS
+            : PERMISSIONS.IOS.LOCATION_WHEN_IN_USE,
+        );
+      }
+
+      if (
+        granted === PermissionsAndroid.RESULTS.GRANTED ||
+        granted === 'granted'
+      ) {
         await BackgroundService.start(veryIntensiveTask, options);
         setIsRunning(true);
         registerHeadlessTask();
