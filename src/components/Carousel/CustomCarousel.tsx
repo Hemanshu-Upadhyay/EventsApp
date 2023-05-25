@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import CarouselItem from './CarouselItem';
+import {useSelector} from 'react-redux';
 
 const {width, height} = Dimensions.get('window');
 let flatList;
@@ -16,6 +17,9 @@ let flatList;
 const CustomCarousel = ({data}) => {
   const scrollX = new Animated.Value(0);
   let position = Animated.divide(scrollX, width);
+
+  const {uploading} = useSelector(state => state.events);
+
   const [dataList, setDataList] = useState(data);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const defaultImage = {
@@ -23,10 +27,6 @@ const CustomCarousel = ({data}) => {
     url: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSPfoZjo2BFClW-L-P-jWaz699pTgyNV-H1ig&usqp=CAU',
   };
 
-  const defaultData = {
-    title: 'Available Soon',
-    description: 'Event Images available soon',
-  };
   useEffect(() => {
     setDataList(data);
   }, [data]);
@@ -56,7 +56,7 @@ const CustomCarousel = ({data}) => {
           scrollEnabled
           showsHorizontalScrollIndicator={false}
           renderItem={({item}) => {
-            return <CarouselItem item={item} data={data} />;
+            return <CarouselItem key={item.id} item={item} data={data} />;
           }}
           onScroll={handleScroll}
           onMomentumScrollEnd={handleScroll}
@@ -71,7 +71,7 @@ const CustomCarousel = ({data}) => {
     );
   }
 
-  return <CarouselItem item={defaultImage} data={defaultData} />;
+  return <CarouselItem item={defaultImage} data={data} uploading={uploading} />;
 };
 
 const styles = StyleSheet.create({

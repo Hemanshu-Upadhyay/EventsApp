@@ -16,10 +16,12 @@ import PushNotificationIOS from '@react-native-community/push-notification-ios';
 import Geolocation from '@react-native-community/geolocation';
 import createEvent from '../src/events/eventCreator';
 import {useDispatch} from 'react-redux';
+import store from '../src/redux/store';
 import {getEvents, uploadEventPhotos} from '../src/redux/slices/eventsSlice';
+import {MAPS_API_KEY} from '@env';
 import {request, PERMISSIONS} from 'react-native-permissions';
 
-Geocoder.init('AIzaSyB8iCzJlmSC8Ku6pStVH1l-qVjZi65H96k');
+Geocoder.init(MAPS_API_KEY);
 interface TaskDataArguments {
   delay: number;
 }
@@ -32,29 +34,49 @@ const veryIntensiveTask = async (taskDataArguments: TaskDataArguments) => {
 
   await new Promise(async resolve => {
     for (let i = 0; BackgroundService.isRunning(); i++) {
-      Geolocation.getCurrentPosition(
-        position => {
-          console.log(position);
-          showNotification(position.coords);
-          const {latitude, longitude} = position.coords;
-          Geocoder.from(latitude, longitude)
-            .then(response => {
-              const address = response.results[0].formatted_address;
-              createEvent(address, latitude, longitude);
-            })
-            .catch(error => {
-              console.warn('Geocoding error:', error);
-            });
-        },
-        error => {
-          console.log(error);
-        },
-        {
-          enableHighAccuracy: true,
-          timeout: 15000,
-          maximumAge: 1000 * 60,
-        },
-      );
+      console.log('i=', i);
+      if (i % 10 === 0) {
+        const eventsForSync = await AsyncStorage.getItem('eventsForSync');
+        const uploadingSlot = await AsyncStorage.getItem('uploadingSlot');
+        console.log(
+          'EVENTS IN STORAGE & SLOT+==========',
+          eventsForSync,
+          uploadingSlot,
+        );
+        if (
+          eventsForSync !== null &&
+          AppState.currentState === 'active' &&
+          uploadingSlot !== 'occupied'
+        ) {
+          console.log('DISPATCHING UPLOADING==========', eventsForSync);
+          store.dispatch(uploadEventPhotos(JSON.parse(eventsForSync)));
+          await AsyncStorage.setItem('uploadingSlot', 'occupied');
+        }
+        console.log('APPSTATe+++++++++', AppState.currentState);
+        Geolocation.getCurrentPosition(
+          position => {
+            console.log(position);
+            showNotification(position.coords);
+            const {latitude, longitude} = position.coords;
+            Geocoder.from(latitude, longitude)
+              .then(response => {
+                const address = response.results[0].formatted_address;
+                createEvent(address, latitude, longitude);
+              })
+              .catch(error => {
+                console.warn('Geocoding error:', error);
+              });
+          },
+          error => {
+            console.log(error);
+          },
+          {
+            enableHighAccuracy: true,
+            timeout: 50000,
+            maximumAge: 1000 * 60,
+          },
+        );
+      }
       await sleep(delay);
     }
     // resolve();
@@ -72,7 +94,7 @@ const options = {
   color: '#ff00ff',
   linkingURI: 'yourSchemeHere://chat/jane',
   parameters: {
-    delay: 10000,
+    delay: 1000,
   },
   allowExecutionInForeground: true,
 };
@@ -92,6 +114,12 @@ const showNotification = (coords: GeolocationCoordinates) => {
   }
 };
 
+const showCounter = (num: number) => {
+  if (Platform.OS === 'android') {
+    ToastAndroid.show(`count: ${num}`, ToastAndroid.SHORT);
+  }
+};
+
 const registerHeadlessTask = () => {
   HeadlessJsTaskSupport.addEvent(
     'LocationTracking',
@@ -103,29 +131,38 @@ const registerHeadlessTask = () => {
 const BackgroundLocationService = () => {
   const dispatch = useDispatch();
   const [isRunning, setIsRunning] = useState(false);
-  const [appState, setAppState] = useState(AppState.currentState);
+  // const [appState, setAppState] = useState(AppState.currentState);
 
   useEffect(() => {
     dispatch(getEvents());
   }, [dispatch]);
 
+  // useEffect(() => {
+  //   const handleAppStateChange = nextAppState => {
+  //     setAppState(nextAppState);
+  //   };
+
+  //   // Subscribe to app state changes
+  //   AppState?.addEventListener('change', handleAppStateChange);
+
+  //   // Clean up event listener on unmount
+  //   return () => {
+  //     AppState?.removeEventListener('change', handleAppStateChange);
+  //   };
+  // }, []);
+
   useEffect(() => {
-    const handleAppStateChange = nextAppState => {
-      setAppState(nextAppState);
-    };
-
-    // Subscribe to app state changes
-    AppState.addEventListener('change', handleAppStateChange);
-
-    // Clean up event listener on unmount
+    // if (appState === 'active') {
+    //   dispatch(uploadEventPhotos());
+    // }
+    console.log('Appstate entering effect--------=====', AppState.currentState);
     return () => {
-      AppState.removeEventListener('change', handleAppStateChange);
+      console.log(
+        'Appstate leaving effect--------=====',
+        AppState.currentState,
+      );
     };
   }, []);
-  console.log('APPstate==========', appState);
-  if (appState === 'active') {
-    dispatch(uploadEventPhotos());
-  }
 
   // ...
 
@@ -158,6 +195,7 @@ const BackgroundLocationService = () => {
       ) {
         await BackgroundService.start(veryIntensiveTask, options);
         setIsRunning(true);
+        await AsyncStorage.setItem('appStatus', 'running');
         registerHeadlessTask();
       } else {
         Alert.alert('Location permission denied');
@@ -166,19 +204,30 @@ const BackgroundLocationService = () => {
       console.warn(err);
     }
   };
-
   const stopTask = async () => {
+    await AsyncStorage.setItem('appStatus', 'stopped');
+    await AsyncStorage.removeItem('eventsForSync');
+    await AsyncStorage.removeItem('uploadingSlot');
     await BackgroundService.stop();
     setIsRunning(false);
   };
 
+  // const getAppStatus = () => {
+  //   return AsyncStorage.getItem('appStatus');
+  // };
+
   useEffect(() => {
-    if (!isRunning) {
-      startTask();
-    }
-    return () => {
-      BackgroundService.stop();
+    const getAppStatus = async () => {
+      const runningStatus: null | string = await AsyncStorage.getItem(
+        'appStatus',
+      );
+      console.log('running-----', runningStatus);
+      if (runningStatus !== 'running') {
+        console.log('HELOOOOOOOOOOO=-----------');
+        startTask();
+      }
     };
+    getAppStatus();
   }, []);
 
   const clearStorage = () => {
@@ -188,7 +237,7 @@ const BackgroundLocationService = () => {
   return (
     <View>
       {/* <Button title="Start Tracking" disabled={isRunning} onPress={startTask} /> */}
-      <Button title="Stop Tracking" disabled={!isRunning} onPress={stopTask} />
+      <Button title="Stop Tracking" onPress={stopTask} />
       {/* <Button title="Clear Storage" onPress={clearStorage} /> */}
     </View>
   );

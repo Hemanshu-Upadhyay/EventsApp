@@ -6,7 +6,7 @@ const middlewares = [];
 
 const {logger} = require(`redux-logger`);
 
-middlewares.push(logger);
+// middlewares.push(logger);
 
 const store = configureStore({
   reducer: createReducer(),

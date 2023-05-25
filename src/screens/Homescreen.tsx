@@ -12,8 +12,8 @@ const Homescreen = () => {
       <View>
         <Header title="Home" />
 
-        {events.map((event, i) => (
-          <CustomCarousel key={i} data={event} />
+        {events.map(event => (
+          <CustomCarousel key={event.id} data={event} />
         ))}
         {/* <CustomCarousel data={events} /> */}
         {/* <CustomCarousel data={dummyData} /> */}
