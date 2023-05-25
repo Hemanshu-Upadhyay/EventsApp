@@ -9,8 +9,6 @@ import {formatTime} from '../utils/helpers';
 const eventCreator = async (coords: string, latitude, longitude) => {
   const startTimeStamp = new Date().getTime();
 
-  let events = await AsyncStorage.getItem('eventsForSync');
-  console.log('events-----', events);
   let oldTime = await AsyncStorage.getItem('eventStartTime');
   let oldAddress = await AsyncStorage.getItem('currentAddress');
 
@@ -67,7 +65,10 @@ const eventCreator = async (coords: string, latitude, longitude) => {
               filename: item?.node?.image?.filename,
             };
           });
-          console.log('creating new event 000000000000000000000000000000');
+          console.log(
+            'creating new event 000000000000000000000000000000---',
+            JSON.parse(oldAddress),
+          );
           const body = {
             latitude,
             longitude,

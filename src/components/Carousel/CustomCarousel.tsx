@@ -56,7 +56,7 @@ const CustomCarousel = ({data}) => {
           scrollEnabled
           showsHorizontalScrollIndicator={false}
           renderItem={({item}) => {
-            return <CarouselItem item={item} data={data} />;
+            return <CarouselItem key={item.id} item={item} data={data} />;
           }}
           onScroll={handleScroll}
           onMomentumScrollEnd={handleScroll}

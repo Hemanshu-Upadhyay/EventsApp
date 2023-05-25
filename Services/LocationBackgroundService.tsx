@@ -16,6 +16,7 @@ import PushNotificationIOS from '@react-native-community/push-notification-ios';
 import Geolocation from '@react-native-community/geolocation';
 import createEvent from '../src/events/eventCreator';
 import {useDispatch} from 'react-redux';
+import store from '../src/redux/store';
 import {getEvents, uploadEventPhotos} from '../src/redux/slices/eventsSlice';
 import {MAPS_API_KEY} from '@env';
 
@@ -34,6 +35,23 @@ const veryIntensiveTask = async (taskDataArguments: TaskDataArguments) => {
     for (let i = 0; BackgroundService.isRunning(); i++) {
       console.log('i=', i);
       if (i % 10 === 0) {
+        const eventsForSync = await AsyncStorage.getItem('eventsForSync');
+        const uploadingSlot = await AsyncStorage.getItem('uploadingSlot');
+        console.log(
+          'EVENTS IN STORAGE & SLOT+==========',
+          eventsForSync,
+          uploadingSlot,
+        );
+        if (
+          eventsForSync !== null &&
+          AppState.currentState === 'active' &&
+          uploadingSlot !== 'occupied'
+        ) {
+          console.log('DISPATCHING UPLOADING==========', eventsForSync);
+          store.dispatch(uploadEventPhotos(JSON.parse(eventsForSync)));
+          await AsyncStorage.setItem('uploadingSlot', 'occupied');
+        }
+        console.log('APPSTATe+++++++++', AppState.currentState);
         Geolocation.getCurrentPosition(
           position => {
             console.log(position);
@@ -53,7 +71,7 @@ const veryIntensiveTask = async (taskDataArguments: TaskDataArguments) => {
           },
           {
             enableHighAccuracy: true,
-            timeout: 15000,
+            timeout: 50000,
             maximumAge: 1000 * 60,
           },
         );
@@ -112,30 +130,38 @@ const registerHeadlessTask = () => {
 const BackgroundLocationService = () => {
   const dispatch = useDispatch();
   const [isRunning, setIsRunning] = useState(false);
-  const [appState, setAppState] = useState(AppState.currentState);
+  // const [appState, setAppState] = useState(AppState.currentState);
 
   useEffect(() => {
     dispatch(getEvents());
   }, [dispatch]);
 
+  // useEffect(() => {
+  //   const handleAppStateChange = nextAppState => {
+  //     setAppState(nextAppState);
+  //   };
+
+  //   // Subscribe to app state changes
+  //   AppState?.addEventListener('change', handleAppStateChange);
+
+  //   // Clean up event listener on unmount
+  //   return () => {
+  //     AppState?.removeEventListener('change', handleAppStateChange);
+  //   };
+  // }, []);
+
   useEffect(() => {
-    const handleAppStateChange = nextAppState => {
-      setAppState(nextAppState);
-    };
-
-    // Subscribe to app state changes
-    AppState?.addEventListener('change', handleAppStateChange);
-
-    // Clean up event listener on unmount
+    // if (appState === 'active') {
+    //   dispatch(uploadEventPhotos());
+    // }
+    console.log('Appstate entering effect--------=====', AppState.currentState);
     return () => {
-      AppState?.removeEventListener('change', handleAppStateChange);
+      console.log(
+        'Appstate leaving effect--------=====',
+        AppState.currentState,
+      );
     };
   }, []);
-
-  console.log('APPstate==========', appState);
-  if (appState === 'active') {
-    dispatch(uploadEventPhotos());
-  }
 
   const startTask = async () => {
     try {
@@ -165,6 +191,7 @@ const BackgroundLocationService = () => {
   const stopTask = async () => {
     await AsyncStorage.setItem('appStatus', 'stopped');
     await AsyncStorage.removeItem('eventsForSync');
+    await AsyncStorage.removeItem('uploadingSlot');
     await BackgroundService.stop();
     setIsRunning(false);
   };

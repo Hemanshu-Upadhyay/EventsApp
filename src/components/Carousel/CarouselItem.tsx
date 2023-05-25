@@ -13,7 +13,8 @@ const {width, height} = Dimensions.get('window');
 const CarouselItem = ({item, data, uploading = false}) => {
   const hardcodedDescription = `This pic is clicked at ${data?.title}`;
   return (
-    <View style={styles.cardView}>
+    <View key={item.id} style={styles.cardView}>
+      {/* {console.log('imageURL=--------', item.url)} */}
       {uploading ? (
         <ActivityIndicator style={styles.loader} size="large" color="#777777" />
       ) : (
