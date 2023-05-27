@@ -21,7 +21,7 @@ import {getEvents, uploadEventPhotos} from '../src/redux/slices/eventsSlice';
 import {MAPS_API_KEY} from '@env';
 import {request, PERMISSIONS} from 'react-native-permissions';
 
-Geocoder.init(MAPS_API_KEY);
+Geocoder.init('AIzaSyB8iCzJlmSC8Ku6pStVH1l-qVjZi65H96k');
 interface TaskDataArguments {
   delay: number;
 }
@@ -34,7 +34,6 @@ const veryIntensiveTask = async (taskDataArguments: TaskDataArguments) => {
 
   await new Promise(async resolve => {
     for (let i = 0; BackgroundService.isRunning(); i++) {
-      console.log('i=', i);
       if (i % 10 === 0) {
         const eventsForSync = await AsyncStorage.getItem('eventsForSync');
         const uploadingSlot = await AsyncStorage.getItem('uploadingSlot');

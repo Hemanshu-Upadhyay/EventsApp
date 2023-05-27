@@ -5,6 +5,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import store from '../../src/redux/store';
 import {createEvent, updateEvents} from '../redux/slices/eventsSlice';
 import {formatTime} from '../utils/helpers';
+import {check, request, PERMISSIONS, RESULTS} from 'react-native-permissions';
 
 const eventCreator = async (coords: string, latitude, longitude) => {
   const startTimeStamp = new Date().getTime();
@@ -50,12 +51,36 @@ const eventCreator = async (coords: string, latitude, longitude) => {
         return;
       }
 
+      // iOS permission check
+      if (Platform.OS === 'ios') {
+        try {
+          const status = await check(PERMISSIONS.IOS.PHOTO_LIBRARY);
+          console.log(status);
+          if (status !== RESULTS.GRANTED) {
+            try {
+              const status = await request(PERMISSIONS.IOS.PHOTO_LIBRARY);
+              if (status !== RESULTS.GRANTED) {
+                console.log('Permission Denied');
+                return;
+              }
+            } catch (err) {
+              console.log(err);
+            }
+          }
+        } catch (err) {
+          console.log(err);
+        }
+      }
+
       CameraRoll.getPhotos({
         first: 50,
         assetType: 'Photos',
         fromTime: Number(oldTime),
         toTime: startTimeStamp,
         include: ['filename'],
+        // iOS-specific properties
+        groupTypes: 'All',
+        mimeTypes: ['image/jpeg', 'image/png'],
       })
         .then(async r => {
           console.log({photos: r?.edges[0]?.node});
