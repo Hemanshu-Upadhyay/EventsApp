@@ -135,7 +135,7 @@ export const uploadEventPhotos = createAsyncThunk(
 
         console.log('formData===============', eventKey, formData);
         const response = await axios.post(
-          `https://4134bhgzxj.execute-api.us-east-1.amazonaws.com/events/upload/${eventKey}`,
+          `https://2fm3on5exc.execute-api.us-east-1.amazonaws.com/events/upload/${eventKey}`,
           formData,
           {
             timeout: 50000,

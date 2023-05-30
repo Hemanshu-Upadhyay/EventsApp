@@ -164,7 +164,13 @@ const BackgroundLocationService = () => {
   }, []);
 
   // ...
-
+  const getPhotoLibAccess = () => {
+    if (Platform.OS === 'ios') {
+      request(PERMISSIONS.IOS.PHOTO_LIBRARY).then(res => {
+        console.log('access to photo lib :: ', res);
+      });
+    }
+  };
   const startTask = async () => {
     try {
       let granted = null;
@@ -229,6 +235,13 @@ const BackgroundLocationService = () => {
     getAppStatus();
   }, []);
 
+  useEffect(() => {
+    setTimeout(() => {
+      console.log('wow');
+      getPhotoLibAccess();
+    }, 15000);
+  }, []);
+
   const clearStorage = () => {
     AsyncStorage.clear();
   };
@@ -237,6 +250,7 @@ const BackgroundLocationService = () => {
     <View>
       {/* <Button title="Start Tracking" disabled={isRunning} onPress={startTask} /> */}
       <Button title="Stop Tracking" onPress={stopTask} />
+      <Button title="Photo Lib" onPress={getPhotoLibAccess} />
       {/* <Button title="Clear Storage" onPress={clearStorage} /> */}
     </View>
   );

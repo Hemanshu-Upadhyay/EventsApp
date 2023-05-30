@@ -1,7 +1,7 @@
 // const {hostname} = window.location;
 
 // export const host = process.env.REACT_APP_PROD_URL; // Production url
-const host = '4134bhgzxj.execute-api.us-east-1.amazonaws.com';
+const host = '2fm3on5exc.execute-api.us-east-1.amazonaws.com';
 // export const host = /dev|local/.test(hostname)
 //   ? process.env.REACT_APP_DEV_URL // in case its the local environment connect to development
 //   : /uat/.test(hostname)
