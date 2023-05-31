@@ -34,7 +34,6 @@ const veryIntensiveTask = async (taskDataArguments: TaskDataArguments) => {
 
   await new Promise(async resolve => {
     for (let i = 0; BackgroundService.isRunning(); i++) {
-      console.log('i=', i);
       if (i % 10 === 0) {
         const eventsForSync = await AsyncStorage.getItem('eventsForSync');
         const uploadingSlot = await AsyncStorage.getItem('uploadingSlot');
@@ -130,42 +129,18 @@ const registerHeadlessTask = () => {
 
 const BackgroundLocationService = () => {
   const dispatch = useDispatch();
-  const [isRunning, setIsRunning] = useState(false);
-  // const [appState, setAppState] = useState(AppState.currentState);
 
   useEffect(() => {
     dispatch(getEvents());
   }, [dispatch]);
 
-  // useEffect(() => {
-  //   const handleAppStateChange = nextAppState => {
-  //     setAppState(nextAppState);
-  //   };
-
-  //   // Subscribe to app state changes
-  //   AppState?.addEventListener('change', handleAppStateChange);
-
-  //   // Clean up event listener on unmount
-  //   return () => {
-  //     AppState?.removeEventListener('change', handleAppStateChange);
-  //   };
-  // }, []);
-
-  useEffect(() => {
-    // if (appState === 'active') {
-    //   dispatch(uploadEventPhotos());
-    // }
-    console.log('Appstate entering effect--------=====', AppState.currentState);
-    return () => {
-      console.log(
-        'Appstate leaving effect--------=====',
-        AppState.currentState,
-      );
-    };
-  }, []);
-
-  // ...
-
+  const getPhotoLibAccess = () => {
+    if (Platform.OS === 'ios') {
+      request(PERMISSIONS.IOS.PHOTO_LIBRARY).then(res => {
+        console.log('access to photo lib :: ', res);
+      });
+    }
+  };
   const startTask = async () => {
     try {
       let granted = null;
@@ -194,7 +169,6 @@ const BackgroundLocationService = () => {
         granted === 'granted'
       ) {
         await BackgroundService.start(veryIntensiveTask, options);
-        setIsRunning(true);
         await AsyncStorage.setItem('appStatus', 'running');
         registerHeadlessTask();
       } else {
@@ -209,7 +183,6 @@ const BackgroundLocationService = () => {
     await AsyncStorage.removeItem('eventsForSync');
     await AsyncStorage.removeItem('uploadingSlot');
     await BackgroundService.stop();
-    setIsRunning(false);
   };
 
   // const getAppStatus = () => {
@@ -230,14 +203,18 @@ const BackgroundLocationService = () => {
     getAppStatus();
   }, []);
 
-  const clearStorage = () => {
-    AsyncStorage.clear();
-  };
+  // useEffect(() => {
+  //   setTimeout(() => {
+  //     console.log('wow');
+  //     getPhotoLibAccess();
+  //   }, 15000);
+  // }, []);
 
   return (
     <View>
       {/* <Button title="Start Tracking" disabled={isRunning} onPress={startTask} /> */}
       <Button title="Stop Tracking" onPress={stopTask} />
+      {/* <Button title="Photo Lib" onPress={getPhotoLibAccess} /> */}
       {/* <Button title="Clear Storage" onPress={clearStorage} /> */}
     </View>
   );

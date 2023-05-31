@@ -3,8 +3,12 @@
 <plist version="1.0">
 <dict>
 
+<!-- <key>NSPhotoLibraryUsageDescription</key>
+<string>Access to photos is required for XYZ functionality.</string>
+  <key>NSCameraUsageDescription</key>
+  <string>We need Camera Access for Clicking Pictures</string>
 
-  <!-- 🚨 Keep only the permissions used in your app 🚨 -->
+
 
   <key>NSAppleMusicUsageDescription</key>
   <string>YOUR TEXT</string>
@@ -13,8 +17,6 @@
   <key>NSBluetoothPeripheralUsageDescription</key>
   <string>YOUR TEXT</string>
   <key>NSCalendarsUsageDescription</key>
-  <string>YOUR TEXT</string>
-  <key>NSCameraUsageDescription</key>
   <string>YOUR TEXT</string>
   <key>NSContactsUsageDescription</key>
   <string>YOUR TEXT</string>
@@ -35,10 +37,6 @@
   <string>YOUR TEXT</string>
   <key>NSMotionUsageDescription</key>
   <string>YOUR TEXT</string>
-  <key>NSPhotoLibraryUsageDescription</key>
-  <string>YOUR TEXT</string>
-  <key>NSPhotoLibraryAddUsageDescription</key>
-  <string>YOUR TEXT</string>
   <key>NSRemindersUsageDescription</key>
   <string>YOUR TEXT</string>
   <key>NSSpeechRecognitionUsageDescription</key>
@@ -51,8 +49,7 @@
 <string>Your description here</string>
 <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 <string>We need access to your location for continuous background tracking.</string>
-
-  <!-- … -->
+ -->
 
 
 
