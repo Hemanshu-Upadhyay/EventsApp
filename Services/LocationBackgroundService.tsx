@@ -21,7 +21,7 @@ import {getEvents, uploadEventPhotos} from '../src/redux/slices/eventsSlice';
 import {MAPS_API_KEY} from '@env';
 import {request, PERMISSIONS} from 'react-native-permissions';
 
-Geocoder.init('AIzaSyB8iCzJlmSC8Ku6pStVH1l-qVjZi65H96k');
+Geocoder.init(MAPS_API_KEY);
 interface TaskDataArguments {
   delay: number;
 }
@@ -129,41 +129,11 @@ const registerHeadlessTask = () => {
 
 const BackgroundLocationService = () => {
   const dispatch = useDispatch();
-  const [isRunning, setIsRunning] = useState(false);
-  // const [appState, setAppState] = useState(AppState.currentState);
 
   useEffect(() => {
     dispatch(getEvents());
   }, [dispatch]);
 
-  // useEffect(() => {
-  //   const handleAppStateChange = nextAppState => {
-  //     setAppState(nextAppState);
-  //   };
-
-  //   // Subscribe to app state changes
-  //   AppState?.addEventListener('change', handleAppStateChange);
-
-  //   // Clean up event listener on unmount
-  //   return () => {
-  //     AppState?.removeEventListener('change', handleAppStateChange);
-  //   };
-  // }, []);
-
-  useEffect(() => {
-    // if (appState === 'active') {
-    //   dispatch(uploadEventPhotos());
-    // }
-    console.log('Appstate entering effect--------=====', AppState.currentState);
-    return () => {
-      console.log(
-        'Appstate leaving effect--------=====',
-        AppState.currentState,
-      );
-    };
-  }, []);
-
-  // ...
   const getPhotoLibAccess = () => {
     if (Platform.OS === 'ios') {
       request(PERMISSIONS.IOS.PHOTO_LIBRARY).then(res => {
@@ -199,7 +169,6 @@ const BackgroundLocationService = () => {
         granted === 'granted'
       ) {
         await BackgroundService.start(veryIntensiveTask, options);
-        setIsRunning(true);
         await AsyncStorage.setItem('appStatus', 'running');
         registerHeadlessTask();
       } else {
@@ -214,7 +183,6 @@ const BackgroundLocationService = () => {
     await AsyncStorage.removeItem('eventsForSync');
     await AsyncStorage.removeItem('uploadingSlot');
     await BackgroundService.stop();
-    setIsRunning(false);
   };
 
   // const getAppStatus = () => {
@@ -235,22 +203,18 @@ const BackgroundLocationService = () => {
     getAppStatus();
   }, []);
 
-  useEffect(() => {
-    setTimeout(() => {
-      console.log('wow');
-      getPhotoLibAccess();
-    }, 15000);
-  }, []);
-
-  const clearStorage = () => {
-    AsyncStorage.clear();
-  };
+  // useEffect(() => {
+  //   setTimeout(() => {
+  //     console.log('wow');
+  //     getPhotoLibAccess();
+  //   }, 15000);
+  // }, []);
 
   return (
     <View>
       {/* <Button title="Start Tracking" disabled={isRunning} onPress={startTask} /> */}
       <Button title="Stop Tracking" onPress={stopTask} />
-      <Button title="Photo Lib" onPress={getPhotoLibAccess} />
+      {/* <Button title="Photo Lib" onPress={getPhotoLibAccess} /> */}
       {/* <Button title="Clear Storage" onPress={clearStorage} /> */}
     </View>
   );

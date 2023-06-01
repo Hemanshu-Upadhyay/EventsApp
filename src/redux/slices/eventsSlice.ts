@@ -262,7 +262,7 @@ export const uploadEventPhotosOlder = createAsyncThunk(
         });
         console.log('formData==', key, '=============', formData);
         const response = await axios.post(
-          `https://h56ja5o9j2.execute-api.us-east-1.amazonaws.com/events/upload/${key}`,
+          `https://2fm3on5exc.execute-api.us-east-1.amazonaws.com/events/upload/${key}`,
           formData,
           {
             headers: {

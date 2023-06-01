@@ -79,8 +79,8 @@ const eventCreator = async (coords: string, latitude, longitude) => {
         toTime: startTimeStamp,
         include: ['filename'],
         // iOS-specific properties
-        groupTypes: 'All',
-        mimeTypes: ['image/jpeg', 'image/png'],
+        // groupTypes: 'All', (by default its value is 'All')
+        // mimeTypes: ['image/jpeg', 'image/png'],
       })
         .then(async r => {
           console.log({photos: r?.edges[0]?.node});

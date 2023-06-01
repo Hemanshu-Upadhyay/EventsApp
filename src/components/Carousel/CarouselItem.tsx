@@ -7,11 +7,11 @@ import {
   Dimensions,
   ActivityIndicator,
 } from 'react-native';
+import {formatISOToDateString} from '../../utils/helpers';
 
 const {width, height} = Dimensions.get('window');
 
 const CarouselItem = ({item, data, uploading = false}) => {
-  const hardcodedDescription = `This pic is clicked at ${data?.title}`;
   return (
     <View key={item.id} style={styles.cardView}>
       {/* {console.log('imageURL=--------', item.url)} */}
@@ -28,7 +28,7 @@ const CarouselItem = ({item, data, uploading = false}) => {
           numberOfLines={1}
           ellipsizeMode="tail"
           style={styles.itemDescription}>
-          {hardcodedDescription}
+          {formatISOToDateString(data.end_timestamp)}
         </Text>
       </View>
     </View>
