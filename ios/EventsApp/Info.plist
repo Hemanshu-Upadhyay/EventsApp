@@ -28,6 +28,8 @@
 	<string>App Uses this permission to get the Photos from the User to show it in project.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>App uses Always Location to Track the Movement</string>
+	<key>LSApplicationCategoryType</key>
+	<string></string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>App uses location in BG</string>
 	<key>NSPhotoLibraryUsageDescription</key>
