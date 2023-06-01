@@ -18,10 +18,9 @@ import createEvent from '../src/events/eventCreator';
 import {useDispatch} from 'react-redux';
 import store from '../src/redux/store';
 import {getEvents, uploadEventPhotos} from '../src/redux/slices/eventsSlice';
-import {MAPS_API_KEY} from '@env';
 import {request, PERMISSIONS} from 'react-native-permissions';
 
-Geocoder.init(MAPS_API_KEY);
+Geocoder.init('AIzaSyB8iCzJlmSC8Ku6pStVH1l-qVjZi65H96k');
 interface TaskDataArguments {
   delay: number;
 }
