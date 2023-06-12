@@ -249,9 +249,9 @@ const BackgroundLocationService = () => {
       // Application
       stopOnTerminate: false,
       startOnBoot: true,
-      // enableHeadless: true,
+      enableHeadless: true,
     });
-    // console.log('state----', state);
+    console.log('state----', state);
     setEnabled(state.trackingMode);
   };
 
@@ -339,11 +339,11 @@ const BackgroundLocationService = () => {
   }, []);
 
   useEffect(() => {
-    if (location) {
+    if (location && location.coords) {
       const {longitude, latitude} = location.coords;
       Geocoder.from(latitude, longitude)
         .then(response => {
-          const address = response.results[0].formatted_address;
+          const address = response.results[0]?.formatted_address; // Added null check for address
           console.log('ADDRESS_-----', address);
           createEvent(address, latitude, longitude);
         })

@@ -2,6 +2,10 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key></key>
+	<string></string>
+	<key>NSMotionUsageDescription</key>
+	<string>Motion permission helps detect when device in in-motion</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
@@ -22,14 +26,14 @@
 	<string>????</string>
 	<key>CFBundleVersion</key>
 	<string>$(CURRENT_PROJECT_VERSION)</string>
+	<key>LSApplicationCategoryType</key>
+	<string></string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSAppleMusicUsageDescription</key>
 	<string>App Uses this permission to get the Photos from the User to show it in project.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>App uses Always Location to Track the Movement</string>
-	<key>LSApplicationCategoryType</key>
-	<string></string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>App uses location in BG</string>
 	<key>NSPhotoLibraryUsageDescription</key>
@@ -39,6 +43,7 @@
 		<string>external-accessory</string>
 		<string>fetch</string>
 		<string>location</string>
+		<string>processing</string>
 		<string>remote-notification</string>
 		<string>voip</string>
 	</array>
