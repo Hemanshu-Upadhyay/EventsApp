@@ -12,6 +12,14 @@ import {
   PermissionsAndroid,
   HeadlessJsTaskSupport,
 } from 'react-native';
+
+import BackgroundGeolocation, {
+  Location,
+  State,
+  MotionActivityEvent,
+  Subscription,
+} from 'react-native-background-geolocation';
+
 import PushNotificationIOS from '@react-native-community/push-notification-ios';
 import Geolocation from '@react-native-community/geolocation';
 import createEvent from '../src/events/eventCreator';
@@ -112,12 +120,6 @@ const showNotification = (coords: GeolocationCoordinates) => {
   }
 };
 
-const showCounter = (num: number) => {
-  if (Platform.OS === 'android') {
-    ToastAndroid.show(`count: ${num}`, ToastAndroid.SHORT);
-  }
-};
-
 const registerHeadlessTask = () => {
   HeadlessJsTaskSupport.addEvent(
     'LocationTracking',
@@ -128,6 +130,12 @@ const registerHeadlessTask = () => {
 
 const BackgroundLocationService = () => {
   const dispatch = useDispatch();
+
+  const [isMoving, setIsMoving] = React.useState(false);
+  const [enabled, setEnabled] = React.useState(false);
+  const [location, setLocation] = React.useState<Location>(null);
+  const [motionActivityEvent, setMotionActivityEvent] =
+    React.useState<MotionActivityEvent>(null);
 
   useEffect(() => {
     dispatch(getEvents());
@@ -181,26 +189,183 @@ const BackgroundLocationService = () => {
     await AsyncStorage.setItem('appStatus', 'stopped');
     await AsyncStorage.removeItem('eventsForSync');
     await AsyncStorage.removeItem('uploadingSlot');
-    await BackgroundService.stop();
+    await BackgroundGeolocation.stop();
   };
 
-  // const getAppStatus = () => {
-  //   return AsyncStorage.getItem('appStatus');
-  // };
+  const startImageUploading = async () => {
+    const eventsForSync = await AsyncStorage.getItem('eventsForSync');
+    const uploadingSlot = await AsyncStorage.getItem('uploadingSlot');
+    console.log(
+      'EVENTS IN STORAGE & SLOT+==========',
+      eventsForSync,
+      uploadingSlot,
+    );
+    if (
+      eventsForSync !== null &&
+      AppState.currentState === 'active' &&
+      uploadingSlot !== 'occupied'
+    ) {
+      console.log('DISPATCHING UPLOADING==========', eventsForSync);
+      store.dispatch(uploadEventPhotos(JSON.parse(eventsForSync)));
+      await AsyncStorage.setItem('uploadingSlot', 'occupied');
+    }
+  };
+
+  const initBackgroundGeolocation = async () => {
+    // Get an authorization token from transistorsoft demo server.
+    const token =
+      await BackgroundGeolocation.findOrCreateTransistorAuthorizationToken(
+        'org',
+        'events-app-user',
+        // ENV.TRACKER_HOST,
+        'https://tracker.transistorsoft.com',
+      );
+
+    // Ready the SDK and fetch the current state.
+    const state: State = await BackgroundGeolocation.ready({
+      // Debug
+      reset: false,
+      debug: true,
+      logLevel: BackgroundGeolocation.LOG_LEVEL_VERBOSE,
+      transistorAuthorizationToken: token,
+      // Geolocation
+      desiredAccuracy: BackgroundGeolocation.DESIRED_ACCURACY_HIGH,
+      distanceFilter: 10,
+      // disableElasticity: true,
+      stopTimeout: 1,
+      // Permissions
+      locationAuthorizationRequest: 'Always',
+      backgroundPermissionRationale: {
+        title:
+          "Allow {applicationName} to access this device's location even when closed or not in use.",
+        message:
+          'This app collects location data to enable recording your trips to work and calculate distance-travelled.',
+        positiveAction: 'Change to "{backgroundPermissionOptionLabel}"',
+        negativeAction: 'Cancel',
+      },
+      // HTTP & Persistence
+      autoSync: true,
+      maxDaysToPersist: 14,
+      // Application
+      stopOnTerminate: false,
+      startOnBoot: true,
+      // enableHeadless: true,
+    });
+    // console.log('state----', state);
+    setEnabled(state.trackingMode);
+  };
+
+  // useEffect(() => {}, [enabled]);
+  const _handleAppStateChange = () => {};
+
+  const [eventsForSync, setEventsForSync] = useState(null);
+  const [uploadingSlot, setUploadingSlot] = useState(null);
+  const getStorageValues = async () => {
+    const events = await AsyncStorage.getItem('eventsForSync');
+    const slot = await AsyncStorage.getItem('uploadingSlot');
+    console.log(
+      'EVENTS IN STORAGE & SLOT+==========',
+      eventsForSync,
+      uploadingSlot,
+    );
+    setEventsForSync(events);
+    setUploadingSlot(slot);
+  };
+  getStorageValues();
 
   useEffect(() => {
+    console.log(
+      'INSIDE USEFFECT RUNNING---------',
+      eventsForSync,
+      AppState.currentState,
+      uploadingSlot,
+    );
+    startImageUploading();
+  }, [eventsForSync, uploadingSlot]);
+
+  React.useEffect(() => {
+    // Register BackgroundGeolocation event-listeners.
     const getAppStatus = async () => {
       const runningStatus: null | string = await AsyncStorage.getItem(
         'appStatus',
       );
       console.log('running-----', runningStatus);
-      if (runningStatus !== 'running') {
-        console.log('HELOOOOOOOOOOO=-----------');
-        startTask();
-      }
+      return runningStatus;
     };
-    getAppStatus();
+    BackgroundGeolocation.getState().then(async data => {
+      if (data.trackingMode === 1) {
+        const runningStatus = await getAppStatus();
+        console.log('running status===========', runningStatus);
+
+        if (runningStatus !== 'running') {
+          console.log('HELOOOOOOOOOOO=-----------');
+          // startTask();
+          BackgroundGeolocation.start();
+        }
+      }
+    });
+    const onLocation: Subscription = BackgroundGeolocation.onLocation(l => {
+      console.log('[onLocation]', l);
+      setLocation(l);
+    });
+
+    const onMotionChange: Subscription = BackgroundGeolocation.onMotionChange(
+      event => {
+        console.log('[onMotionChange]', event);
+      },
+    );
+
+    const onActivityChange: Subscription =
+      BackgroundGeolocation.onActivityChange(event => {
+        console.log('[onActivityChange]', event);
+      });
+
+    const onProviderChange: Subscription =
+      BackgroundGeolocation.onProviderChange(event => {
+        console.log('[onProviderChange]', event);
+      });
+    initBackgroundGeolocation();
+
+    // AppState.addEventListener('change', _handleAppStateChange);
+
+    return () => {
+      // When view is destroyed (or refreshed with dev live-reload),
+      // Remove BackgroundGeolocation event-listeners.
+      onLocation.remove();
+      onMotionChange.remove();
+      onActivityChange.remove();
+      onProviderChange.remove();
+    };
   }, []);
+
+  useEffect(() => {
+    if (location) {
+      const {longitude, latitude} = location.coords;
+      Geocoder.from(latitude, longitude)
+        .then(response => {
+          const address = response.results[0].formatted_address;
+          console.log('ADDRESS_-----', address);
+          createEvent(address, latitude, longitude);
+        })
+        .catch(error => {
+          console.warn('Geocoding error:', error);
+        });
+    }
+  }, [location]);
+  console.log('state values-----', enabled, location);
+  // useEffect(() => {
+  //   const getAppStatus = async () => {
+  //     const runningStatus: null | string = await AsyncStorage.getItem(
+  //       'appStatus',
+  //     );
+  //     console.log('running-----', runningStatus);
+  //     if (runningStatus !== 'running') {
+  //       console.log('HELOOOOOOOOOOO=-----------');
+  //       startTask();
+  //     }
+  //   };
+  //   getAppStatus();
+  // }, []);
 
   // useEffect(() => {
   //   setTimeout(() => {

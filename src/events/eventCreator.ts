@@ -43,83 +43,87 @@ const eventCreator = async (coords: string, latitude, longitude) => {
     let currentAddress = coords;
     oldTime = await AsyncStorage.getItem('eventStartTime');
     oldAddress = await AsyncStorage.getItem('currentAddress');
-    if (
-      JSON.parse(oldAddress) !== currentAddress &&
-      startTimeStamp - Number(oldTime) > 10000
-    ) {
-      if (Platform.OS === 'android' && !(await hasAndroidPermission())) {
-        return;
-      }
-
-      // iOS permission check
-      if (Platform.OS === 'ios') {
-        try {
-          const status = await check(PERMISSIONS.IOS.PHOTO_LIBRARY);
-          console.log(status);
-          if (status !== RESULTS.GRANTED) {
-            try {
-              const status = await request(PERMISSIONS.IOS.PHOTO_LIBRARY);
-              if (status !== RESULTS.GRANTED) {
-                console.log('Permission Denied');
-                return;
-              }
-            } catch (err) {
-              console.log(err);
-            }
-          }
-        } catch (err) {
-          console.log(err);
+    if (JSON.parse(oldAddress) !== currentAddress) {
+      console.log(
+        'TIME DIFFernce-==========-=-=-=-=',
+        startTimeStamp - Number(oldTime),
+      );
+      // run this logic if the time elapsed at the same location more than 30 minutes
+      if (startTimeStamp - Number(oldTime) > 180000) {
+        if (Platform.OS === 'android' && !(await hasAndroidPermission())) {
+          return;
         }
-      }
 
-      CameraRoll.getPhotos({
-        first: 50,
-        assetType: 'Photos',
-        fromTime: Number(oldTime),
-        toTime: startTimeStamp,
-        include: ['filename'],
-        // iOS-specific properties
-        // groupTypes: 'All', (by default its value is 'All')
-        // mimeTypes: ['image/jpeg', 'image/png'],
-      })
-        .then(async r => {
-          console.log({photos: r?.edges[0]?.node});
-          const images = r.edges.map(item => {
-            return {
-              uri: item?.node?.image?.uri,
-              filename: item?.node?.image?.filename,
-            };
-          });
-          console.log(
-            'creating new event 000000000000000000000000000000---',
-            JSON.parse(oldAddress),
-          );
-          const body = {
-            latitude,
-            longitude,
-            google_lookup: JSON.parse(oldAddress),
-            begin_timestamp: formatTime(Number(oldTime)),
-            end_timestamp: formatTime(startTimeStamp),
-            title: JSON.parse(oldAddress),
-            category: 'Events pics',
-          };
-          store.dispatch(
-            createEvent({
-              body,
-              images: images,
-              coords: JSON.parse(oldAddress),
-              startTimeStamp,
-            }),
-          );
-          await AsyncStorage.setItem('currentAddress', JSON.stringify(coords));
-          await AsyncStorage.setItem(
-            'eventStartTime',
-            JSON.stringify(startTimeStamp),
-          );
+        // iOS permission check
+        if (Platform.OS === 'ios') {
+          try {
+            const status = await check(PERMISSIONS.IOS.PHOTO_LIBRARY);
+            console.log(status);
+            if (status !== RESULTS.GRANTED) {
+              try {
+                const status = await request(PERMISSIONS.IOS.PHOTO_LIBRARY);
+                if (status !== RESULTS.GRANTED) {
+                  console.log('Permission Denied');
+                  return;
+                }
+              } catch (err) {
+                console.log(err);
+              }
+            }
+          } catch (err) {
+            console.log(err);
+          }
+        }
+
+        CameraRoll.getPhotos({
+          first: 50,
+          assetType: 'Photos',
+          fromTime: Number(oldTime),
+          toTime: startTimeStamp,
+          include: ['filename'],
+          // iOS-specific properties
+          // groupTypes: 'All', (by default its value is 'All')
+          // mimeTypes: ['image/jpeg', 'image/png'],
         })
-        .catch(err => {
-          console.log(err);
-        });
+          .then(async r => {
+            console.log({photos: r?.edges[0]?.node});
+            const images = r.edges.map(item => {
+              return {
+                uri: item?.node?.image?.uri,
+                filename: item?.node?.image?.filename,
+              };
+            });
+            console.log(
+              'creating new event 000000000000000000000000000000---',
+              JSON.parse(oldAddress),
+            );
+            const body = {
+              latitude,
+              longitude,
+              google_lookup: JSON.parse(oldAddress),
+              begin_timestamp: formatTime(Number(oldTime)),
+              end_timestamp: formatTime(startTimeStamp),
+              title: JSON.parse(oldAddress),
+              category: 'Events pics',
+            };
+            store.dispatch(
+              createEvent({
+                body,
+                images: images,
+                coords: JSON.parse(oldAddress),
+                startTimeStamp,
+              }),
+            );
+          })
+          .catch(err => {
+            console.log(err);
+          });
+      }
+      await AsyncStorage.setItem('currentAddress', JSON.stringify(coords));
+      await AsyncStorage.setItem(
+        'eventStartTime',
+        JSON.stringify(startTimeStamp),
+      );
     }
   };
 
