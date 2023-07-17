@@ -12,11 +12,10 @@ import CarouselItem from './CarouselItem';
 import {useSelector} from 'react-redux';
 
 const {width, height} = Dimensions.get('window');
-let flatList;
 
 const CustomCarousel = ({data}) => {
-  const scrollX = new Animated.Value(0);
-  let position = Animated.divide(scrollX, width);
+  // const scrollX = new Animated.Value(0);
+  // let position = Animated.divide(scrollX, width);
 
   const {uploading} = useSelector(state => state.events);
 
@@ -37,26 +36,27 @@ const CustomCarousel = ({data}) => {
     setCurrentImageIndex(imageIndex);
   };
 
-  const scrollToIndex = index => {
-    setCurrentImageIndex(index);
-    flatList.scrollToIndex({animated: true, index});
-  };
-
   if (data.photos && data.photos.length) {
     return (
       <View>
         <FlatList
           data={data?.photos}
-          ref={ref => {
-            flatList = ref;
-          }}
-          keyExtractor={item => item.id}
+          // ref={ref => {
+          //   flatList = ref;
+          // }}
+          keyExtractor={item => `${item.id}_${Math.ceil(Math.random() * 1000)}`}
           horizontal
           pagingEnabled
           scrollEnabled
           showsHorizontalScrollIndicator={false}
           renderItem={({item}) => {
-            return <CarouselItem key={item.id} item={item} data={data} />;
+            return (
+              <CarouselItem
+                key={`${item.id}_${Math.ceil(Math.random() * 1000)}`}
+                item={item}
+                data={data}
+              />
+            );
           }}
           onScroll={handleScroll}
           onMomentumScrollEnd={handleScroll}

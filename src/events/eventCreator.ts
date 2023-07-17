@@ -1,11 +1,14 @@
 import {PermissionsAndroid, Platform} from 'react-native';
-// import Geocoder from 'react-native-geocoding';
+import Geocoder from 'react-native-geocoding';
 import {CameraRoll} from '@react-native-camera-roll/camera-roll';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import store from '../../src/redux/store';
 import {createEvent, updateEvents} from '../redux/slices/eventsSlice';
+import {MAPS_API_KEY} from '@env';
 import {formatTime} from '../utils/helpers';
 import {check, request, PERMISSIONS, RESULTS} from 'react-native-permissions';
+
+Geocoder.init(MAPS_API_KEY);
 
 const eventCreator = async (coords: string, latitude, longitude) => {
   const startTimeStamp = new Date().getTime();
@@ -49,7 +52,7 @@ const eventCreator = async (coords: string, latitude, longitude) => {
         startTimeStamp - Number(oldTime),
       );
       // run this logic if the time elapsed at the same location more than 30 minutes
-      if (startTimeStamp - Number(oldTime) > 180000) {
+      if (startTimeStamp - Number(oldTime) > 1800000) {
         if (Platform.OS === 'android' && !(await hasAndroidPermission())) {
           return;
         }
@@ -93,27 +96,39 @@ const eventCreator = async (coords: string, latitude, longitude) => {
                 filename: item?.node?.image?.filename,
               };
             });
+
             console.log(
               'creating new event 000000000000000000000000000000---',
               JSON.parse(oldAddress),
             );
-            const body = {
-              latitude,
-              longitude,
-              google_lookup: JSON.parse(oldAddress),
-              begin_timestamp: formatTime(Number(oldTime)),
-              end_timestamp: formatTime(startTimeStamp),
-              title: JSON.parse(oldAddress),
-              category: 'Events pics',
-            };
-            store.dispatch(
-              createEvent({
-                body,
-                images: images,
-                coords: JSON.parse(oldAddress),
-                startTimeStamp,
-              }),
-            );
+
+            Geocoder.from(oldAddress?.split('_')[0], oldAddress?.split('_')[1])
+              .then(response => {
+                const address = response.results[0].formatted_address;
+                console.log('ADDRESS_-----', address);
+
+                const body = {
+                  latitude,
+                  longitude,
+                  google_lookup: JSON.parse(address),
+                  begin_timestamp: formatTime(Number(oldTime)),
+                  end_timestamp: formatTime(startTimeStamp),
+                  title: JSON.parse(address),
+                  category: 'Events pics',
+                };
+
+                store.dispatch(
+                  createEvent({
+                    body,
+                    images: images,
+                    coords: JSON.parse(address),
+                    startTimeStamp,
+                  }),
+                );
+              })
+              .catch(error => {
+                console.warn('Geocoding error:', error);
+              });
           })
           .catch(err => {
             console.log(err);
