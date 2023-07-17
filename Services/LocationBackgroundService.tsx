@@ -22,7 +22,6 @@ import createEvent from '../src/events/eventCreator';
 import {useDispatch} from 'react-redux';
 import store from '../src/redux/store';
 import {getEvents, uploadEventPhotos} from '../src/redux/slices/eventsSlice';
-import {MAPS_API_KEY} from '@env';
 import {request, PERMISSIONS} from 'react-native-permissions';
 
 Geocoder.init(MAPS_API_KEY);
@@ -99,7 +98,7 @@ const BackgroundLocationService = () => {
     const state: State = await BackgroundGeolocation.ready({
       // Debug
       reset: false,
-      debug: true,
+      debug: false,
       logLevel: BackgroundGeolocation.LOG_LEVEL_VERBOSE,
       transistorAuthorizationToken: token,
       // Geolocation
@@ -125,7 +124,7 @@ const BackgroundLocationService = () => {
       startOnBoot: true,
       enableHeadless: true,
     });
-    // console.log('state----', state);
+    console.log('state----', state);
     setEnabled(state.trackingMode);
   };
 
@@ -229,14 +228,14 @@ const BackgroundLocationService = () => {
 
   useEffect(() => {
     console.log('location update--=-=-=-');
-    if (location) {
+    if (location && location.coords) {
       const {longitude, latitude} = location.coords;
       const address = `${latitude}_${longitude}`;
       createEvent(address, latitude, longitude);
 
       /*Geocoder.from(latitude, longitude)
         .then(response => {
-          const address = response.results[0].formatted_address;
+          const address = response.results[0]?.formatted_address; // Added null check for address
           console.log('ADDRESS_-----', address);
           createEvent(address, latitude, longitude);
         })
