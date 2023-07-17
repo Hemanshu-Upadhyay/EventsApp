@@ -1,32 +1,34 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 
-const makeRequest = (
+const makeRequest = async (
   url: string,
   method = 'GET',
   body = {},
-  // options: Object,
+  options: Object,
 ) => {
-  // const allOptions = {
-  //   headers: {...options},
-  // };
+  const token = await AsyncStorage.getItem('token');
+  const allOptions = {
+    headers: {Authorization: `Bearer ${token}`},
+  };
   switch (method) {
     case 'GET':
-      return axios.get(url);
+      return axios.get(url, allOptions);
 
     case 'POST':
-      return axios.post(url, body);
+      return axios.post(url, body, allOptions);
 
     case 'PUT':
-      return axios.put(url, body);
+      return axios.put(url, body, allOptions);
 
     case 'PATCH':
-      return axios.patch(url, body);
+      return axios.patch(url, body, allOptions);
 
     case 'DELETE':
-      return axios.delete(url);
+      return axios.delete(url, allOptions);
 
     default:
-      return axios.get(url, {});
+      return axios.get(url, {}, allOptions);
   }
 };
 

@@ -5,19 +5,35 @@ import CustomCarousel from '../components/Carousel/CustomCarousel';
 import {dummyData} from '../../data/Data';
 import Header from '../components/Header/Header';
 import Card from '../components/Carousel/Caraousal';
+import {Button} from 'react-native-elements';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import BackgroundLocationService from '../../Services/LocationBackgroundService';
+
 const Homescreen = () => {
   const events = useSelector(state => state.events.events);
+
+  const handleLogout = () => {
+    console.log('Logout');
+    AsyncStorage.removeItem('token');
+  };
   return (
     <>
       <View>
         <Header title="Home" />
-
         {events.map(event => (
           <CustomCarousel key={event.id} data={event} />
         ))}
+
+        <Button
+          title="SignOut"
+          onPress={handleLogout}
+          buttonStyle={{backgroundColor: '#F85F6A', width: 200}}
+          containerStyle={{marginBottom: 16}}
+        />
         {/* <CustomCarousel data={events} /> */}
         {/* <CustomCarousel data={dummyData} /> */}
         {/* <Card /> */}
+        <BackgroundLocationService />
       </View>
     </>
   );

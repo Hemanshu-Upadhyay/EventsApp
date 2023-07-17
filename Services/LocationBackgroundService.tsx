@@ -225,7 +225,7 @@ const BackgroundLocationService = () => {
     const state: State = await BackgroundGeolocation.ready({
       // Debug
       reset: false,
-      debug: true,
+      debug: false,
       logLevel: BackgroundGeolocation.LOG_LEVEL_VERBOSE,
       transistorAuthorizationToken: token,
       // Geolocation
