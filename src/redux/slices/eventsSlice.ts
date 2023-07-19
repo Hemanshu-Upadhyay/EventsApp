@@ -46,7 +46,7 @@ export const getEvents = createAsyncThunk('events/getEvents', async () => {
       throw new Error();
     }
   } catch (error) {
-    return {error};
+    return {error: 'Some Error Occured, please reload.'};
   }
 });
 
@@ -166,7 +166,7 @@ export const uploadEventPhotos = createAsyncThunk(
       return {status: 200};
     } catch (error) {
       await AsyncStorage.setItem('uploadingSlot', 'available');
-      return {error};
+      return {error: 'Upload failed'};
     }
   },
 );
@@ -315,7 +315,7 @@ const toastSlice = createSlice({
     });
 
     builder.addCase(createEvent.pending, state => {
-      state.loading = true;
+      // state.loading = true;
     });
     builder.addCase(createEvent.fulfilled, state => {
       state.loading = false;

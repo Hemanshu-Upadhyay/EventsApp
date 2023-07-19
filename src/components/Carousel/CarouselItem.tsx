@@ -13,8 +13,9 @@ const {width, height} = Dimensions.get('window');
 
 const CarouselItem = ({item, data, uploading = false}) => {
   return (
-    <View key={item.id} style={styles.cardView}>
-      {/* {console.log('imageURL=--------', item.url)} */}
+    <View
+      key={`${item.id}_${Math.ceil(Math.random() * 1000)}`}
+      style={styles.cardView}>
       {uploading ? (
         <ActivityIndicator style={styles.loader} size="large" color="#777777" />
       ) : (

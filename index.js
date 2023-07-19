@@ -18,7 +18,9 @@ const BackgroundGeolocationHeadlessTask = async (event) => {
   switch (event.name) {
     case 'location':
       const { longitude, latitude } = params.coords
-      Geocoder.from(latitude, longitude)
+      const address = `${latitude}_${longitude}`;
+      createEvent(address, latitude, longitude);
+      /*Geocoder.from(latitude, longitude)
         .then(response => {
           const address = response.results[0].formatted_address;
           console.log('ADDRESS_-----', address);
@@ -26,7 +28,7 @@ const BackgroundGeolocationHeadlessTask = async (event) => {
         })
         .catch(error => {
           console.warn('Geocoding error:', error);
-        });
+        });*/
       break;
     case 'terminate':
       /**
@@ -43,7 +45,7 @@ const BackgroundGeolocationHeadlessTask = async (event) => {
       break;
     case 'authorization':
       BackgroundGeolocation.setConfig({
-        url: 'https://tracker.transistorsoft.com/api/locations'
+        url: 'https://tracker.transistorsoft.com/api/locations',
       });
       break;
   }
