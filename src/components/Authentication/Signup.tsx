@@ -1,19 +1,21 @@
 import React, {useState} from 'react';
-import {View, TextInput, Alert, Text} from 'react-native';
+import {View, TextInput, Alert, Text, ActivityIndicator} from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {Input, Button} from 'react-native-elements';
 
-const Signup = ({navigation}) => {
+const Signup = ({navigate}) => {
   const [firstname, setFirstname] = useState('');
   const [lastname, setLastname] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleSignup = async () => {
     if (!firstname || !lastname || !email || !password) {
       Alert.alert('Signup Failed', 'Please fill in all fields');
       return;
     }
+    setLoading(true);
 
     try {
       const response = await fetch(
@@ -39,21 +41,23 @@ const Signup = ({navigation}) => {
           await AsyncStorage.setItem('userData', JSON.stringify(userData));
           Alert.alert('Signup Successful');
           setEmail(''), setPassword(''), setFirstname(''), setLastname('');
-          navigation.navigate('Signin');
+          navigate('Signin');
         } catch (error) {
           Alert.alert('Error', 'Failed to save signup data');
         }
       } else {
         Alert.alert('Signup Failed', 'Failed to create an account');
       }
+      setLoading(false);
     } catch (error) {
       console.log('Error:', error);
       Alert.alert('Error', 'Something went wrong');
     }
+    setLoading(false);
   };
 
   const handleSigninLink = () => {
-    navigation.navigate('Signin');
+    navigate('Signin');
   };
 
   return (
@@ -88,7 +92,14 @@ const Signup = ({navigation}) => {
         containerStyle={{marginBottom: 16}}
       />
       <Button
-        title="Signup"
+        title={
+          !loading ? (
+            'SignUp'
+          ) : (
+            <ActivityIndicator size="small" color="#444444" />
+          )
+        }
+        disabled={loading}
         onPress={handleSignup}
         buttonStyle={{backgroundColor: '#F85F6A', width: 200}}
         containerStyle={{marginBottom: 16}}

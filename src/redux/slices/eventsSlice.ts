@@ -315,7 +315,7 @@ const toastSlice = createSlice({
     });
 
     builder.addCase(createEvent.pending, state => {
-      state.loading = true;
+      // state.loading = true;
     });
     builder.addCase(createEvent.fulfilled, state => {
       state.loading = false;

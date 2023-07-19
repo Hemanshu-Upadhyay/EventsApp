@@ -99,36 +99,36 @@ const eventCreator = async (coords: string, latitude, longitude) => {
 
             console.log(
               'creating new event 000000000000000000000000000000---',
-              JSON.parse(oldAddress),
+              oldAddress,
             );
+            let address = oldAddress;
+            // Geocoder.from(oldAddress?.split('_')[0], oldAddress?.split('_')[1])
+            //   .then(response => {
+            //     address = response.results[0].formatted_address;
+            //     console.log('ADDRESS_-----', address);
+            //   })
+            //   .catch(error => {
+            //     console.warn('Geocoding error:', error);
+            //   });
 
-            Geocoder.from(oldAddress?.split('_')[0], oldAddress?.split('_')[1])
-              .then(response => {
-                const address = response.results[0].formatted_address;
-                console.log('ADDRESS_-----', address);
+            const body = {
+              latitude,
+              longitude,
+              google_lookup: address,
+              begin_timestamp: formatTime(Number(oldTime)),
+              end_timestamp: formatTime(startTimeStamp),
+              title: address,
+              category: 'Events pics',
+            };
 
-                const body = {
-                  latitude,
-                  longitude,
-                  google_lookup: JSON.parse(address),
-                  begin_timestamp: formatTime(Number(oldTime)),
-                  end_timestamp: formatTime(startTimeStamp),
-                  title: JSON.parse(address),
-                  category: 'Events pics',
-                };
-
-                store.dispatch(
-                  createEvent({
-                    body,
-                    images: images,
-                    coords: JSON.parse(address),
-                    startTimeStamp,
-                  }),
-                );
-              })
-              .catch(error => {
-                console.warn('Geocoding error:', error);
-              });
+            store.dispatch(
+              createEvent({
+                body,
+                images: images,
+                coords: JSON.parse(address),
+                startTimeStamp,
+              }),
+            );
           })
           .catch(err => {
             console.log(err);

@@ -1,5 +1,5 @@
-import React from 'react';
-import {useSelector} from 'react-redux';
+import React, {useEffect} from 'react';
+import {useDispatch, useSelector} from 'react-redux';
 import {
   View,
   StyleSheet,
@@ -14,13 +14,22 @@ import Card from '../components/Carousel/Caraousal';
 import {Button} from 'react-native-elements';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import BackgroundLocationService from '../../Services/LocationBackgroundService';
+import {getEvents} from '../redux/slices/eventsSlice';
 
-const Homescreen = () => {
+const Homescreen = ({setToken}) => {
+  const dispatch = useDispatch();
+
   const {events, error, loading} = useSelector(state => state.events);
+
+  useEffect(() => {
+    console.log('fetching VEENTSSS .......................');
+    dispatch(getEvents());
+  }, [dispatch]);
 
   const handleLogout = () => {
     console.log('Logout');
     AsyncStorage.removeItem('token');
+    setToken(null);
   };
 
   if (loading) {

@@ -1,29 +1,29 @@
-import React, {useState, useEffect} from 'react';
+import React from 'react';
 import {Provider} from 'react-redux';
-import {SafeAreaView, ScrollView} from 'react-native';
+import {SafeAreaView, StyleSheet} from 'react-native';
 import {NavigationContainer} from '@react-navigation/native';
-import {createNativeStackNavigator} from '@react-navigation/native-stack';
+import {createStackNavigator} from '@react-navigation/stack';
 import Homescreen from './src/screens/Homescreen';
 import Signup from './src/components/Authentication/Signup';
 import Signin from './src/components/Authentication/Signin';
 import store from './src/redux/store';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import Authentication from './src/navigation';
 
-const Stack = createNativeStackNavigator();
+const Stack = createStackNavigator();
 
 const App = () => {
   return (
     <Provider store={store}>
       <SafeAreaView style={{flex: 1}}>
-        <NavigationContainer>
-          <Stack.Navigator>
+        <Authentication />
+        {/* <NavigationContainer>
+          <Stack.Navigator initialRouteName="Home">
             <Stack.Screen
               name="Authentication"
               component={Authentication}
               options={{headerShown: false}}
             />
-            <Stack.Screen
+            {/* <Stack.Screen
               name="Signin"
               component={Signin}
               options={{headerShown: false}}
@@ -39,7 +39,7 @@ const App = () => {
               options={{headerShown: false}}
             />
           </Stack.Navigator>
-        </NavigationContainer>
+        </NavigationContainer> */}
       </SafeAreaView>
     </Provider>
   );

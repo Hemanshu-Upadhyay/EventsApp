@@ -6,9 +6,9 @@ import {Input, Button} from 'react-native-elements';
 // Import your HomeScreen and Signup components
 
 import Homescreen from '../screens/Homescreen';
-import Signup from '../components/Authentication/Signup';
+import Auth from '../screens/Auth';
 
-const Authentication = ({navigation}) => {
+const Authentication = () => {
   const [token, setToken] = useState(null); // Initialize token as null
 
   useEffect(() => {
@@ -25,7 +25,11 @@ const Authentication = ({navigation}) => {
     checkToken();
   }, []);
 
-  return token ? <Homescreen /> : <Signup navigation={navigation} />;
+  return token ? (
+    <Homescreen setToken={setToken} />
+  ) : (
+    <Auth setToken={setToken} />
+  );
 };
 
 export default Authentication;

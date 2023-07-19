@@ -1,16 +1,18 @@
 import React, {useState} from 'react';
-import {View, TextInput, Alert, Text} from 'react-native';
+import {View, TextInput, Alert, Text, ActivityIndicator} from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {Input, Button} from 'react-native-elements';
 
-const Signin = ({navigation}) => {
+const Signin = ({navigate, setToken}) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleSignin = async () => {
     // Perform signin logic here
     // Example code: validate email and password, make API request, etc.
     if (email && password) {
+      setLoading(true);
       try {
         const response = await fetch(
           'https://2fm3on5exc.execute-api.us-east-1.amazonaws.com/user/signin',
@@ -32,6 +34,7 @@ const Signin = ({navigation}) => {
 
           // Save the JWT token in AsyncStorage or secure storage
           await AsyncStorage.setItem('token', token);
+          setToken(token);
 
           // Signin successful
           Alert.alert('Signin Successful');
@@ -39,15 +42,17 @@ const Signin = ({navigation}) => {
           // Redirect to the home screen or any authenticated page
           setEmail(''), setPassword('');
           console.log(token);
-          navigation.navigate('Home');
+          navigate('Home');
         } else {
           // Signin failed
           Alert.alert('Signin Failed', 'Invalid email or password');
         }
+        setLoading(false);
       } catch (error) {
         console.log('Error:', error);
         Alert.alert('Error', 'Something went wrong');
       }
+      setLoading(false);
     } else {
       // Signin failed
       Alert.alert('Signin Failed', 'Please enter valid email and password');
@@ -55,7 +60,7 @@ const Signin = ({navigation}) => {
   };
 
   const handleSignupLink = () => {
-    navigation.navigate('Signup');
+    navigate('Signup');
   };
 
   return (
@@ -76,8 +81,15 @@ const Signin = ({navigation}) => {
         containerStyle={{marginBottom: 16}}
       />
       <Button
-        title="Sign In"
+        title={
+          !loading ? (
+            'Sign In'
+          ) : (
+            <ActivityIndicator size="small" color="#444444" />
+          )
+        }
         onPress={handleSignin}
+        disabled={loading}
         buttonStyle={{backgroundColor: '#F85F6A', width: 200}}
         containerStyle={{marginBottom: 16}}
       />

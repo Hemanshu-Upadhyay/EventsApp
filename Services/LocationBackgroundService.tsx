@@ -21,24 +21,18 @@ import BackgroundGeolocation, {
 import createEvent from '../src/events/eventCreator';
 import {useDispatch} from 'react-redux';
 import store from '../src/redux/store';
-import {getEvents, uploadEventPhotos} from '../src/redux/slices/eventsSlice';
+import {uploadEventPhotos} from '../src/redux/slices/eventsSlice';
 import {request, PERMISSIONS} from 'react-native-permissions';
 
-Geocoder.init(MAPS_API_KEY);
+// Geocoder.init(MAPS_API_KEY);
 
 const BackgroundLocationService = () => {
-  const dispatch = useDispatch();
-
   const [appState, setAppState] = React.useState('');
   const [isMoving, setIsMoving] = React.useState(false);
   const [enabled, setEnabled] = React.useState(false);
   const [location, setLocation] = React.useState<Location>(null);
   const [motionActivityEvent, setMotionActivityEvent] =
     React.useState<MotionActivityEvent>(null);
-
-  useEffect(() => {
-    dispatch(getEvents());
-  }, [dispatch]);
 
   const stopTask = async () => {
     await AsyncStorage.setItem('appStatus', 'stopped');
@@ -249,7 +243,7 @@ const BackgroundLocationService = () => {
   return (
     <View>
       {/* <Button title="Start Tracking" disabled={isRunning} onPress={startTask} /> */}
-      <Button title="Stop Tracking" onPress={stopTask} />
+      {/* <Button title="Stop Tracking" onPress={stopTask} /> */}
       {/* <Button title="Add Geofence" onPress={addGeofence} /> */}
       {/* <Button title="Photo Lib" onPress={getPhotoLibAccess} /> */}
       {/* <Button title="Clear Storage" onPress={clearStorage} /> */}
