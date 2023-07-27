@@ -38,6 +38,7 @@ const BackgroundLocationService = () => {
     await AsyncStorage.setItem('appStatus', 'stopped');
     await AsyncStorage.removeItem('eventsForSync');
     await AsyncStorage.removeItem('uploadingSlot');
+    await AsyncStorage.removeItem('currentAddress');
     await BackgroundGeolocation.stop();
   };
 
@@ -92,13 +93,13 @@ const BackgroundLocationService = () => {
     const state: State = await BackgroundGeolocation.ready({
       // Debug
       reset: false,
-      debug: false,
+      debug: true,
       logLevel: BackgroundGeolocation.LOG_LEVEL_VERBOSE,
       transistorAuthorizationToken: token,
       // Geolocation
       desiredAccuracy: BackgroundGeolocation.DESIRED_ACCURACY_HIGH,
-      distanceFilter: 10,
-      // disableElasticity: true,
+      distanceFilter: 100,
+      disableElasticity: true,
       stopTimeout: 1,
       // Permissions
       locationAuthorizationRequest: 'Always',
@@ -133,11 +134,11 @@ const BackgroundLocationService = () => {
   const getStorageValues = async () => {
     const events = await AsyncStorage.getItem('eventsForSync');
     const slot = await AsyncStorage.getItem('uploadingSlot');
-    console.log(
-      'EVENTS IN STORAGE & SLOT+==========',
-      eventsForSync,
-      uploadingSlot,
-    );
+    // console.log(
+    //   'EVENTS IN STORAGE & SLOT+==========',
+    //   eventsForSync,
+    //   uploadingSlot,
+    // );
     setEventsForSync(events);
     setUploadingSlot(slot);
   };
@@ -167,10 +168,10 @@ const BackgroundLocationService = () => {
     BackgroundGeolocation.getState().then(async data => {
       if (data.trackingMode === 1) {
         const runningStatus = await getAppStatus();
-        console.log('running status===========', runningStatus);
+        // console.log('running status===========', runningStatus);
 
         if (runningStatus !== 'running') {
-          console.log('HELOOOOOOOOOOO=-----------');
+          // console.log('HELOOOOOOOOOOO=-----------');
           // startTask();
           BackgroundGeolocation.start();
           await AsyncStorage.setItem('appStatus', 'running');
@@ -187,8 +188,12 @@ const BackgroundLocationService = () => {
     // });
 
     const onLocation: Subscription = BackgroundGeolocation.onLocation(l => {
-      console.log('[onLocation]', l);
-      setLocation(l);
+      // console.log('[onLocation]', l);
+      console.log('location update--=-=-=-', l);
+      const {longitude, latitude} = l.coords;
+      const address = `${latitude}/${longitude}`;
+      createEvent(address, latitude, longitude);
+      // setLocation(l);
     });
 
     const onMotionChange: Subscription = BackgroundGeolocation.onMotionChange(
@@ -213,37 +218,27 @@ const BackgroundLocationService = () => {
     return () => {
       // When view is destroyed (or refreshed with dev live-reload),
       // Remove BackgroundGeolocation event-listeners.
-      // onLocation.remove();
-      // onMotionChange.remove();
-      // onActivityChange.remove();
-      // onProviderChange.remove();
+      onLocation.remove();
+      onMotionChange.remove();
+      onActivityChange.remove();
+      onProviderChange.remove();
     };
   }, []);
 
-  useEffect(() => {
-    console.log('location update--=-=-=-');
-    if (location && location.coords) {
-      const {longitude, latitude} = location.coords;
-      const address = `${latitude}_${longitude}`;
-      createEvent(address, latitude, longitude);
-
-      /*Geocoder.from(latitude, longitude)
-        .then(response => {
-          const address = response.results[0]?.formatted_address; // Added null check for address
-          console.log('ADDRESS_-----', address);
-          createEvent(address, latitude, longitude);
-        })
-        .catch(error => {
-          console.warn('Geocoding error:', error);
-        });*/
-    }
-  }, [location]);
-  console.log('state values-----', enabled, location);
+  // useEffect(() => {
+  //   if (location && location.coords) {
+  //     console.log('location update--=-=-=-', location);
+  //     const {longitude, latitude} = location.coords;
+  //     const address = `${latitude}/${longitude}`;
+  //     createEvent(address, latitude, longitude);
+  //   }
+  // }, [location]);
+  // console.log('state values-----', enabled, location);
 
   return (
     <View>
       {/* <Button title="Start Tracking" disabled={isRunning} onPress={startTask} /> */}
-      {/* <Button title="Stop Tracking" onPress={stopTask} /> */}
+      <Button title="Stop Tracking" onPress={stopTask} />
       {/* <Button title="Add Geofence" onPress={addGeofence} /> */}
       {/* <Button title="Photo Lib" onPress={getPhotoLibAccess} /> */}
       {/* <Button title="Clear Storage" onPress={clearStorage} /> */}

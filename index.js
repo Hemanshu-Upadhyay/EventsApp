@@ -18,7 +18,7 @@ const BackgroundGeolocationHeadlessTask = async (event) => {
   switch (event.name) {
     case 'location':
       const { longitude, latitude } = params.coords
-      const address = `${latitude}_${longitude}`;
+      const address = `${latitude}/${longitude}`;
       createEvent(address, latitude, longitude);
       /*Geocoder.from(latitude, longitude)
         .then(response => {

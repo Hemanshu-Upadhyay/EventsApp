@@ -3,13 +3,13 @@ import {Text, View, StyleSheet} from 'react-native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import Icon from '../Icon';
 
-const Header = ({title}) => {
+const Header = ({title, handleLogout}) => {
   return (
     <View style={[styles.container, {marginTop: 20, marginBottom: 20}]}>
       <Icon icon="User" onPress={() => {}} />
 
       <Text style={styles.title}>{title}</Text>
-      <Icon icon="Hamburger" onPress={() => {}} />
+      <Icon icon="Logout" onPress={handleLogout} />
     </View>
   );
 };

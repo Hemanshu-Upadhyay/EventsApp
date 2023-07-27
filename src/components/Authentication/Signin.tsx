@@ -69,7 +69,7 @@ const Signin = ({navigate, setToken}) => {
         placeholder="Email"
         value={email}
         onChangeText={text => setEmail(text)}
-        inputStyle={{color: '#333'}}
+        inputStyle={{color: '#F85F6A'}}
         containerStyle={{marginBottom: 16}}
       />
       <Input
@@ -77,7 +77,7 @@ const Signin = ({navigate, setToken}) => {
         secureTextEntry={true}
         value={password}
         onChangeText={text => setPassword(text)}
-        inputStyle={{color: '#333'}}
+        inputStyle={{color: '#F85F6A'}}
         containerStyle={{marginBottom: 16}}
       />
       <Button

@@ -66,21 +66,21 @@ const Signup = ({navigate}) => {
         placeholder="First Name"
         value={firstname}
         onChangeText={text => setFirstname(text)}
-        inputStyle={{color: '#333'}}
+        inputStyle={{color: '#F85F6A'}}
         containerStyle={{marginBottom: 16}}
       />
       <Input
         placeholder="Last Name"
         value={lastname}
         onChangeText={text => setLastname(text)}
-        inputStyle={{color: '#333'}}
+        inputStyle={{color: '#F85F6A'}}
         containerStyle={{marginBottom: 16}}
       />
       <Input
         placeholder="Email"
         value={email}
         onChangeText={text => setEmail(text)}
-        inputStyle={{color: '#333'}}
+        inputStyle={{color: '#F85F6A'}}
         containerStyle={{marginBottom: 16}}
       />
       <Input
@@ -88,7 +88,7 @@ const Signup = ({navigate}) => {
         secureTextEntry={true}
         value={password}
         onChangeText={text => setPassword(text)}
-        inputStyle={{color: '#333'}}
+        inputStyle={{color: '#F85F6A'}}
         containerStyle={{marginBottom: 16}}
       />
       <Button
