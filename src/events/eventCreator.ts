@@ -11,6 +11,7 @@ import {check, request, PERMISSIONS, RESULTS} from 'react-native-permissions';
 Geocoder.init(MAPS_API_KEY);
 
 const eventCreator = async (coords: string, latitude, longitude) => {
+  console.log('EVENT CREATION STARTS ??????????????????????????');
   const startTimeStamp = new Date().getTime();
 
   let oldTime = await AsyncStorage.getItem('eventStartTime');
@@ -25,8 +26,21 @@ const eventCreator = async (coords: string, latitude, longitude) => {
   }
 
   if (!oldAddress) {
-    await AsyncStorage.setItem('currentAddress', JSON.stringify(coords));
+    await AsyncStorage.setItem('currentAddress', coords);
   }
+  console.log(
+    '********************',
+    oldAddress?.split('/')[0],
+    oldAddress?.split('/')[1],
+  );
+  // Geocoder.from(oldAddress?.split('/')[0], oldAddress?.split('/')[1])
+  //   .then(response => {
+  //     const address = response.results[0].formatted_address;
+  //     console.log('ADDRESS_GOOOOOOOOOOOOOOGLEEEEEEEEEEEEEEE-----', address);
+  //   })
+  //   .catch(error => {
+  //     console.log('Geocoding error:', error);
+  //   });
 
   const checkAddressAndRetrieveImages = async () => {
     async function hasAndroidPermission() {
@@ -46,13 +60,18 @@ const eventCreator = async (coords: string, latitude, longitude) => {
     let currentAddress = coords;
     oldTime = await AsyncStorage.getItem('eventStartTime');
     oldAddress = await AsyncStorage.getItem('currentAddress');
-    if (JSON.parse(oldAddress) !== currentAddress) {
+    if (oldAddress !== currentAddress) {
+      await AsyncStorage.setItem('currentAddress', coords);
+      await AsyncStorage.setItem(
+        'eventStartTime',
+        JSON.stringify(startTimeStamp),
+      );
       console.log(
         'TIME DIFFernce-==========-=-=-=-=',
         startTimeStamp - Number(oldTime),
       );
       // run this logic if the time elapsed at the same location more than 30 minutes
-      if (startTimeStamp - Number(oldTime) > 1800000) {
+      if (startTimeStamp - Number(oldTime) > 30000) {
         if (Platform.OS === 'android' && !(await hasAndroidPermission())) {
           return;
         }
@@ -84,9 +103,6 @@ const eventCreator = async (coords: string, latitude, longitude) => {
           fromTime: Number(oldTime),
           toTime: startTimeStamp,
           include: ['filename'],
-          // iOS-specific properties
-          // groupTypes: 'All', (by default its value is 'All')
-          // mimeTypes: ['image/jpeg', 'image/png'],
         })
           .then(async r => {
             console.log({photos: r?.edges[0]?.node});
@@ -97,48 +113,40 @@ const eventCreator = async (coords: string, latitude, longitude) => {
               };
             });
 
-            console.log(
-              'creating new event 000000000000000000000000000000---',
-              oldAddress,
-            );
             let address = oldAddress;
-            // Geocoder.from(oldAddress?.split('_')[0], oldAddress?.split('_')[1])
-            //   .then(response => {
-            //     address = response.results[0].formatted_address;
-            //     console.log('ADDRESS_-----', address);
-            //   })
-            //   .catch(error => {
-            //     console.warn('Geocoding error:', error);
-            //   });
-
-            const body = {
-              latitude,
-              longitude,
-              google_lookup: address,
-              begin_timestamp: formatTime(Number(oldTime)),
-              end_timestamp: formatTime(startTimeStamp),
-              title: address,
-              category: 'Events pics',
-            };
-
-            store.dispatch(
-              createEvent({
-                body,
-                images: images,
-                coords: JSON.parse(address),
-                startTimeStamp,
-              }),
-            );
+            Geocoder.from(oldAddress?.split('/')[0], oldAddress?.split('/')[1])
+              .then(response => {
+                address = response.results[0].formatted_address;
+                console.log(
+                  'creating new event 000000000000000000000000000000---',
+                  address,
+                );
+                const body = {
+                  latitude,
+                  longitude,
+                  google_lookup: address,
+                  begin_timestamp: formatTime(Number(oldTime)),
+                  end_timestamp: formatTime(startTimeStamp),
+                  title: address,
+                  category: 'Events pics',
+                };
+                store.dispatch(
+                  createEvent({
+                    body,
+                    images: images,
+                    coords: address,
+                    startTimeStamp,
+                  }),
+                );
+              })
+              .catch(error => {
+                console.warn('Geocoding error:', error);
+              });
           })
           .catch(err => {
             console.log(err);
           });
       }
-      await AsyncStorage.setItem('currentAddress', JSON.stringify(coords));
-      await AsyncStorage.setItem(
-        'eventStartTime',
-        JSON.stringify(startTimeStamp),
-      );
     }
   };
 

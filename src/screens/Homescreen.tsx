@@ -48,37 +48,41 @@ const Homescreen = ({setToken}) => {
   }
   return (
     <View style={styles.container}>
-      <Header title="Home" />
-      <FlatList
-        data={events}
-        // ref={ref => {
-        //   flatList = ref;
-        // }}
-        initialNumToRender={10}
-        windowSize={25}
-        snapToAlignment={'start'}
-        decelerationRate={'normal'}
-        keyExtractor={item => `${item.id}_${Math.ceil(Math.random() * 1000)}`}
-        pagingEnabled
-        removeClippedSubviews
-        scrollEnabled
-        renderItem={({item}) => {
-          return (
-            <CustomCarousel
-              key={`${item.id}_${Math.ceil(Math.random() * 1000)}`}
-              data={item}
-            />
-          );
-        }}
-        // onScroll={handleScroll}
-        // onMomentumScrollEnd={handleScroll}
-      />
-      <Button
+      <Header handleLogout={handleLogout} title="Home" />
+      {events.length ? (
+        <FlatList
+          data={events}
+          // ref={ref => {
+          //   flatList = ref;
+          // }}
+          initialNumToRender={10}
+          windowSize={25}
+          snapToAlignment={'start'}
+          decelerationRate={'normal'}
+          keyExtractor={item => `${item.id}_${Math.ceil(Math.random() * 1000)}`}
+          pagingEnabled
+          removeClippedSubviews
+          scrollEnabled
+          renderItem={({item}) => {
+            return (
+              <CustomCarousel
+                key={`${item.id}_${Math.ceil(Math.random() * 1000)}`}
+                data={item}
+              />
+            );
+          }}
+          // onScroll={handleScroll}
+          // onMomentumScrollEnd={handleScroll}
+        />
+      ) : (
+        <Text>No events to show</Text>
+      )}
+      {/* <Button
         title="SignOut"
         onPress={handleLogout}
-        buttonStyle={{backgroundColor: '#F85F6A', width: 200}}
-        containerStyle={{marginBottom: 16}}
-      />
+        buttonStyle={{backgroundColor: '#F85F6A', width: '100%'}}
+        // containerStyle={{marginBottom: 16}}
+      /> */}
       <BackgroundLocationService />
     </View>
   );
@@ -86,7 +90,7 @@ const Homescreen = ({setToken}) => {
 
 const styles = StyleSheet.create({
   container: {
-    height: '95.4%',
+    height: '100%',
   },
   logo: {
     width: 100,
