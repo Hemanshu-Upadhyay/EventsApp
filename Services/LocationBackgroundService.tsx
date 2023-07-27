@@ -238,7 +238,7 @@ const BackgroundLocationService = () => {
   return (
     <View>
       {/* <Button title="Start Tracking" disabled={isRunning} onPress={startTask} /> */}
-      <Button title="Stop Tracking" onPress={stopTask} />
+      {/* <Button title="Stop Tracking" onPress={stopTask} /> */}
       {/* <Button title="Add Geofence" onPress={addGeofence} /> */}
       {/* <Button title="Photo Lib" onPress={getPhotoLibAccess} /> */}
       {/* <Button title="Clear Storage" onPress={clearStorage} /> */}
