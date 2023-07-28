@@ -189,10 +189,10 @@ const BackgroundLocationService = () => {
 
     const onLocation: Subscription = BackgroundGeolocation.onLocation(l => {
       // console.log('[onLocation]', l);
-      console.log('location update--=-=-=-', l);
-      const {longitude, latitude} = l.coords;
-      const address = `${latitude}/${longitude}`;
-      createEvent(address, latitude, longitude);
+      // console.log('location update--=-=-=-', l);
+      // const {longitude, latitude} = l.coords;
+      // const address = `${latitude}/${longitude}`;
+      // createEvent(address, latitude, longitude);
       // setLocation(l);
     });
 
@@ -225,15 +225,15 @@ const BackgroundLocationService = () => {
     };
   }, []);
 
-  // useEffect(() => {
-  //   if (location && location.coords) {
-  //     console.log('location update--=-=-=-', location);
-  //     const {longitude, latitude} = location.coords;
-  //     const address = `${latitude}/${longitude}`;
-  //     createEvent(address, latitude, longitude);
-  //   }
-  // }, [location]);
-  // console.log('state values-----', enabled, location);
+  useEffect(() => {
+    if (location && location.coords) {
+      console.log('location update--=-=-=-', location);
+      const {longitude, latitude} = location.coords;
+      const address = `${latitude}/${longitude}`;
+      createEvent(address, latitude, longitude);
+    }
+  }, [location]);
+  console.log('state values-----', enabled, location);
 
   return (
     <View>
