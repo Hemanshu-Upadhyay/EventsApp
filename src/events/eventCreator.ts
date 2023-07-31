@@ -71,7 +71,7 @@ const eventCreator = async (coords: string, latitude, longitude) => {
         startTimeStamp - Number(oldTime),
       );
       // run this logic if the time elapsed at the same location more than 30 minutes
-      if (startTimeStamp - Number(oldTime) > 30000) {
+      if (startTimeStamp - Number(oldTime) > 1800000) {
         if (Platform.OS === 'android' && !(await hasAndroidPermission())) {
           return;
         }

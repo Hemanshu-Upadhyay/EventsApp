@@ -1,5 +1,6 @@
 import BackgroundService from 'react-native-background-actions';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Geolocation from '@react-native-community/geolocation';
 import Geocoder from 'react-native-geocoding';
 import React, {useState, useEffect} from 'react';
 import {
@@ -188,12 +189,12 @@ const BackgroundLocationService = () => {
     // });
 
     const onLocation: Subscription = BackgroundGeolocation.onLocation(l => {
-      // console.log('[onLocation]', l);
-      console.log('location update--=-=-=-', l);
-      const {longitude, latitude} = l.coords;
-      const address = `${latitude}/${longitude}`;
-      createEvent(address, latitude, longitude);
-      // setLocation(l);
+      console.log('[onLocation]', l);
+      // console.log('location update--=-=-=-', l);
+      // const {longitude, latitude} = l.coords;
+      // const address = `${latitude}/${longitude}`;
+      // createEvent(address, latitude, longitude);
+      setLocation(l);
     });
 
     const onMotionChange: Subscription = BackgroundGeolocation.onMotionChange(
@@ -225,15 +226,48 @@ const BackgroundLocationService = () => {
     };
   }, []);
 
-  // useEffect(() => {
-  //   if (location && location.coords) {
-  //     console.log('location update--=-=-=-', location);
-  //     const {longitude, latitude} = location.coords;
-  //     const address = `${latitude}/${longitude}`;
-  //     createEvent(address, latitude, longitude);
-  //   }
-  // }, [location]);
-  // console.log('state values-----', enabled, location);
+  useEffect(() => {
+    if (location && location.coords) {
+      console.log('location update--=-=-=-', location);
+      const {longitude, latitude} = location.coords;
+      const address = `${latitude}/${longitude}`;
+      createEvent(address, latitude, longitude);
+    }
+  }, [location]);
+  console.log('state values-----', enabled, location);
+
+  const init = async () => {
+    let oldTime = await AsyncStorage.getItem('eventStartTime');
+    let oldAddress = await AsyncStorage.getItem('currentAddress');
+
+    // Storing the start time and address when app runs first time
+    if (!oldTime) {
+      const startTimeStamp = new Date().getTime();
+      await AsyncStorage.setItem(
+        'eventStartTime',
+        JSON.stringify(startTimeStamp),
+      );
+    }
+
+    if (!oldAddress) {
+      Geolocation.getCurrentPosition(
+        async position => {
+          console.log('FIrst time location -------------', position);
+          const {latitude, longitude} = position.coords;
+          const coords = `${latitude}/${longitude}`;
+          await AsyncStorage.setItem('currentAddress', coords);
+        },
+        error => {
+          console.log('Error getting location: ', error.message);
+        },
+        {enableHighAccuracy: true, timeout: 20000, maximumAge: 1000},
+      );
+    }
+  };
+
+  useEffect(() => {
+    init();
+  }, []);
 
   return (
     <View>
