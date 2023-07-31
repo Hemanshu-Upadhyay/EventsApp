@@ -28,7 +28,8 @@ const Homescreen = ({setToken}) => {
 
   const handleLogout = () => {
     console.log('Logout');
-    AsyncStorage.removeItem('token');
+    // AsyncStorage.removeItem('token');
+    AsyncStorage.clear();
     setToken(null);
   };
 
