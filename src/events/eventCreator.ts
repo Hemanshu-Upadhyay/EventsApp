@@ -7,6 +7,7 @@ import {createEvent, updateEvents} from '../redux/slices/eventsSlice';
 import {MAPS_API_KEY} from '@env';
 import {formatTime} from '../utils/helpers';
 import {check, request, PERMISSIONS, RESULTS} from 'react-native-permissions';
+import {showNotification} from '../utils/helpers';
 
 Geocoder.init(MAPS_API_KEY);
 
@@ -61,6 +62,8 @@ const eventCreator = async (coords: string, latitude, longitude) => {
     oldTime = await AsyncStorage.getItem('eventStartTime');
     oldAddress = await AsyncStorage.getItem('currentAddress');
     if (oldAddress !== currentAddress) {
+      const timeToCreateEvent =
+        (await AsyncStorage.getItem('timeToCreateEvent')) || 30;
       await AsyncStorage.setItem('currentAddress', coords);
       await AsyncStorage.setItem(
         'eventStartTime',
@@ -70,8 +73,13 @@ const eventCreator = async (coords: string, latitude, longitude) => {
         'TIME DIFFernce-==========-=-=-=-=',
         startTimeStamp - Number(oldTime),
       );
+
       // run this logic if the time elapsed at the same location more than 30 minutes
-      if (startTimeStamp - Number(oldTime) > 1800000) {
+      if (
+        startTimeStamp - Number(oldTime) >
+        Number(JSON.parse(timeToCreateEvent)) * 60000
+      ) {
+        showNotification({message: 'Creating Event'});
         if (Platform.OS === 'android' && !(await hasAndroidPermission())) {
           return;
         }
@@ -113,6 +121,10 @@ const eventCreator = async (coords: string, latitude, longitude) => {
               };
             });
 
+            showNotification({
+              message: `Images found in device: ${images?.length || 0}`,
+            });
+
             let address = oldAddress;
             Geocoder.from(oldAddress?.split('/')[0], oldAddress?.split('/')[1])
               .then(response => {
@@ -141,9 +153,15 @@ const eventCreator = async (coords: string, latitude, longitude) => {
               })
               .catch(error => {
                 console.warn('Geocoding error:', error);
+                showNotification({
+                  message: 'Event creation failed: Geocoder error',
+                });
               });
           })
           .catch(err => {
+            showNotification({
+              message: 'Failed to fetch device images',
+            });
             console.log(err);
           });
       }

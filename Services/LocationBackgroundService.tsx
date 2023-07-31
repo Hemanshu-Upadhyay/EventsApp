@@ -24,7 +24,9 @@ import {useDispatch} from 'react-redux';
 import store from '../src/redux/store';
 import {uploadEventPhotos} from '../src/redux/slices/eventsSlice';
 import {request, PERMISSIONS} from 'react-native-permissions';
+import {showNotification} from '../src/utils/helpers';
 
+import EventTimer from '../src/components/EventTimer';
 // Geocoder.init(MAPS_API_KEY);
 
 const BackgroundLocationService = () => {
@@ -74,6 +76,7 @@ const BackgroundLocationService = () => {
       AppState.currentState === 'active' &&
       uploadingSlot !== 'occupied'
     ) {
+      showNotification({message: 'uploading images to server'});
       console.log('DISPATCHING UPLOADING==========', eventsForSync);
       store.dispatch(uploadEventPhotos(JSON.parse(eventsForSync)));
       await AsyncStorage.setItem('uploadingSlot', 'occupied');
@@ -195,22 +198,34 @@ const BackgroundLocationService = () => {
       // const address = `${latitude}/${longitude}`;
       // createEvent(address, latitude, longitude);
       setLocation(l);
+      showNotification({
+        message: 'Location change',
+      });
     });
 
     const onMotionChange: Subscription = BackgroundGeolocation.onMotionChange(
       event => {
         console.log('[onMotionChange]', event);
+        showNotification({
+          message: 'Motion change',
+        });
       },
     );
 
     const onActivityChange: Subscription =
       BackgroundGeolocation.onActivityChange(event => {
         console.log('[onActivityChange]', event);
+        showNotification({
+          message: 'Activity change',
+        });
       });
 
     const onProviderChange: Subscription =
       BackgroundGeolocation.onProviderChange(event => {
         console.log('[onProviderChange]', event);
+        showNotification({
+          message: 'Provider change',
+        });
       });
     initBackgroundGeolocation();
 
@@ -227,6 +242,7 @@ const BackgroundLocationService = () => {
   }, []);
 
   useEffect(() => {
+    showNotification({message: 'Location changed in effect'});
     if (location && location.coords) {
       console.log('location update--=-=-=-', location);
       const {longitude, latitude} = location.coords;
@@ -271,6 +287,7 @@ const BackgroundLocationService = () => {
 
   return (
     <View>
+      <EventTimer />
       {/* <Button title="Start Tracking" disabled={isRunning} onPress={startTask} /> */}
       {/* <Button title="Stop Tracking" onPress={stopTask} /> */}
       {/* <Button title="Add Geofence" onPress={addGeofence} /> */}
