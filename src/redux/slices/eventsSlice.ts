@@ -8,6 +8,7 @@ import {
 } from '../../api/urls';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
+import {showNotification} from '../../utils/helpers';
 
 const initialState = {
   events: [],
@@ -65,6 +66,8 @@ export const createEvent = createAsyncThunk(
         const event = {
           [id]: images,
         };
+        showNotification({message: `Event created with ID: ${id}`});
+
         if (images.length) {
           const eventsForSync = await AsyncStorage.getItem('eventsForSync');
           if (eventsForSync === null) {
@@ -87,6 +90,8 @@ export const createEvent = createAsyncThunk(
 
       return response.status;
     } catch (error) {
+      showNotification({message: `Event creation failed: NA`});
+
       return {message: 'Some Error Occured'};
     }
   },
@@ -163,9 +168,11 @@ export const uploadEventPhotos = createAsyncThunk(
         await AsyncStorage.removeItem('eventsForSync');
       }
       dispatch(getEvents());
+      showNotification({message: 'upload image Success'});
       return {status: 200};
     } catch (error) {
       await AsyncStorage.setItem('uploadingSlot', 'available');
+      showNotification({message: 'upload image Failed'});
       return {error: 'Upload failed'};
     }
   },
